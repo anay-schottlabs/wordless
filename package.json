@@ -1,0 +1,14 @@
+{
+  "name": "wordless",
+  "version": "1.0.0",
+  "description": "A Verbatim clone for Google Docs.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anay-schottlabs/wordless.git"
+  },
+  "license": "MIT",
+  "author": "Anay Dandekar",
+  "dependencies": {
+    "@google/clasp": "^3.3.0"
+  }
+}

@@ -1,0 +1,15 @@
+# this is a default .claspignore
+
+# ignore all files…
+**/**
+
+# except the extensions…
+!appsscript.json
+!**/*.gs
+!**/*.js
+!**/*.ts
+!**/*.html
+
+# ignore even valid files if in…
+.git/**
+node_modules/**
