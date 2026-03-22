@@ -29,14 +29,22 @@ function applyStyle(textStart, textEnd, style) {
         .setAttributes(textStart, textEnd, style);
 }
 
+function getText(rangeElement) {
+    const start = rangeElement.getStartOffset();
+    const end = rangeElement.getEndOffsetInclusive();
+    return rangeElement.getElement().asText().getText().slice(start, end + 1);
+}
+
 // this method is called to format selected text
 // the formatType parameter determines what type of styling the text is given
 function formatText(formatType) {
     try {
         // gets the text that the user is selecting
         const selection = DocumentApp.getActiveDocument().getSelection().getRangeElements();
+        console.log(selection);
+        console.log(getText(selection[0]));
         const textStart = selection[0].getStartOffset();
-        const textEnd = selection[0].getEndOffsetInclusive();
+        const textEnd = selection[selection.length - 1].getEndOffsetInclusive();
 
         // create an empty object for style attributes
         // this will be filled out and applied in the switch statement
@@ -57,10 +65,12 @@ function formatText(formatType) {
                 applyStyle(textStart, textEnd, style);
                 break;
             case "CONDENSE":
-                const body = DocumentApp.getActiveDocument().getBody();
-                console.log(`Before: ${body.getText().slice(textStart, textEnd + 1)}`)
-                const text = body.getText().slice(textStart, textEnd + 1).replaceAll("\n", "");
-                console.log(`After: ${text}`);
+                let text = "";
+                selection.forEach((rangeElement) => {
+                    text = text.concat(" ", getText(rangeElement));
+                });
+
+                const body = DocumentApp.getActiveDocument().getBody().editAsText();
                 break;
             case "SHRINK":
                 break;
