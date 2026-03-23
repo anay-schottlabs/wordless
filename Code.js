@@ -21,18 +21,34 @@ function showSidebar() {
         .showSidebar(html);
 }
 
-function applyStyle(textStart, textEnd, style) {
-    // apply the style attributes to the text
-    DocumentApp.getActiveDocument()
-        .getBody()
-        .editAsText()
-        .setAttributes(textStart, textEnd, style);
+function applyStyle(rangeElements, style) {
+    // loop over each range element
+    rangeElements.forEach((rangeElement) => {
+        // if the offset isn't found
+        // skip this iteration
+        // here in the forEach loop, return will act like continue
+        if (rangeElement.getStartOffset() == -1 ||
+            rangeElement.getEndOffsetInclusive() == -1)
+            return;
+        // set the style
+        rangeElement.getElement()   // get the element
+            .asText()               // convert to text
+            .editAsText()           // make it editable
+            .setAttributes(         // set the style
+                rangeElement.getStartOffset(),
+                rangeElement.getEndOffsetInclusive(),
+                style
+            )
+    });
 }
 
-function getText(rangeElement) {
+function getSelectionText(rangeElement) {
     const start = rangeElement.getStartOffset();
     const end = rangeElement.getEndOffsetInclusive();
-    return rangeElement.getElement().asText().getText().slice(start, end + 1);
+    return rangeElement.getElement()    // get the element
+        .asText()                       // convert to text
+        .getText()                      // extract all text (not just selection)
+        .slice(start, end + 1);         // use text positions to cut out only selection
 }
 
 // this method is called to format selected text
@@ -40,11 +56,12 @@ function getText(rangeElement) {
 function formatText(formatType) {
     try {
         // gets the text that the user is selecting
+        // the output is a list of RangeElement objects
+        // each range element encapsulates one type of style
+        // if something is bolded, underlined, or has any other attribute, it gets its own range element
+        // each selection can go over multiple styles, so each one has plenty of range elements
+        // each new paragraph also creates another range element
         const selection = DocumentApp.getActiveDocument().getSelection().getRangeElements();
-        console.log(selection);
-        console.log(getText(selection[0]));
-        const textStart = selection[0].getStartOffset();
-        const textEnd = selection[selection.length - 1].getEndOffsetInclusive();
 
         // create an empty object for style attributes
         // this will be filled out and applied in the switch statement
@@ -54,31 +71,38 @@ function formatText(formatType) {
         switch (formatType) {
             case "HIGHLIGHT":
                 style[DocumentApp.Attribute.BACKGROUND_COLOR] = "#00ffff";
-                applyStyle(textStart, textEnd, style);
+                applyStyle(selection, style);
                 break;
             case "UNDERLINE":
                 style[DocumentApp.Attribute.UNDERLINE] = true;
-                applyStyle(textStart, textEnd, style);
+                applyStyle(selection, style);
                 break;
             case "BOLD":
                 style[DocumentApp.Attribute.BOLD] = true;
-                applyStyle(textStart, textEnd, style);
+                applyStyle(selection, style);
                 break;
             case "CONDENSE":
-                let text = "";
-                selection.forEach((rangeElement) => {
-                    text = text.concat(" ", getText(rangeElement));
-                });
+                // let text = "";
+                // selection.forEach((rangeElement) => {
+                //     text = text.concat(" ", getSelectionText(rangeElement));
+                // });
 
-                const body = DocumentApp.getActiveDocument().getBody().editAsText();
-                break;
+                // const body = DocumentApp.getActiveDocument().getBody().editAsText();
+                // break;
             case "SHRINK":
+                console.log(selection[0].getElement().getAttributes());
+                selection.forEach((rangeElement) => {
+                    if (rangeElement.getElement().getAttributes().length == 0) {
+                        style[DocumentApp.Attribute.FONT_SIZE] = 8;
+                    }
+                });
                 break;
             default:
                 throw new Error("Unkown formatType passed to formatText()")
         }
     }
     catch(error) {
-        console.log(error);
+        console.error("Error message:", error.message);
+        console.error("Stack trace:", error.stack);
     }
 }
