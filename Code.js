@@ -57,10 +57,7 @@ function formatText(formatType) {
     try {
         // gets the text that the user is selecting
         // the output is a list of RangeElement objects
-        // each range element encapsulates one type of style
-        // if something is bolded, underlined, or has any other attribute, it gets its own range element
-        // each selection can go over multiple styles, so each one has plenty of range elements
-        // each new paragraph also creates another range element
+        // each range element encapsulates one paragraph
         const selection = DocumentApp.getActiveDocument().getSelection().getRangeElements();
 
         // create an empty object for style attributes
@@ -90,10 +87,37 @@ function formatText(formatType) {
                 // const body = DocumentApp.getActiveDocument().getBody().editAsText();
                 // break;
             case "SHRINK":
-                console.log(selection[0].getElement().getAttributes());
+                console.log(selection.length);
                 selection.forEach((rangeElement) => {
-                    if (rangeElement.getElement().getAttributes().length == 0) {
-                        style[DocumentApp.Attribute.FONT_SIZE] = 8;
+                    // const attributes = rangeElement.getElement().getAttributes();
+                    // if (attributes.BOLD == null &&
+                    //     attributes.UNDERLINE == null &&
+                    //     attributes.BACKGROUND_COLOR == null) {
+                    //         style[DocumentApp.Attribute.FONT_SIZE] = 8;
+                    //         applyStyle([rangeElement], style);
+                    // }
+                    const textStart = rangeElement.getStartOffset();
+                    const textEnd = rangeElement.getEndOffsetInclusive();
+                    // if the offset isn't found
+                    // skip this iteration
+                    // here in the forEach loop, return will act like continue
+                    if (rangeElement.getStartOffset() == -1 ||
+                        rangeElement.getEndOffsetInclusive() == -1)
+                        return;
+                    let shrinkStart = 0;
+                    for (let i = textStart; i < textEnd + 1; i++) {
+                        const attributes = rangeElement.getElement().asText();
+                        if (attributes.BOLD == null &&
+                            attributes.UNDERLINE == null &&
+                            attributes.BACKGROUND_COLOR == null) {
+                                style[DocumentApp.Attribute.FONT_SIZE] = 8;
+                                rangeElement.getElement()
+                                    .asText()
+                                    .editAsText()
+                                // INDICES WILL BE WEIRD, TODO: DEAL WITH THIS
+                                    // .setAttributes(shrinkStart, i - 1, style)
+                                // reset shrinkstart
+                        }
                     }
                 });
                 break;
