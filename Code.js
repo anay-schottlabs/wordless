@@ -58,7 +58,9 @@ function formatText(formatType) {
         // gets the text that the user is selecting
         // the output is a list of RangeElement objects
         // each range element encapsulates one paragraph
-        const selection = DocumentApp.getActiveDocument().getSelection().getRangeElements();
+        var selection = DocumentApp.getActiveDocument().getSelection();
+        if (selection)
+            selection = selection.getRangeElements();
 
         // create an empty object for style attributes
         // this will be filled out and applied in the switch statement
@@ -79,23 +81,16 @@ function formatText(formatType) {
                 applyStyle(selection, style);
                 break;
             case "CONDENSE":
-                // let text = "";
-                // selection.forEach((rangeElement) => {
-                //     text = text.concat(" ", getSelectionText(rangeElement));
-                // });
-
-                // const body = DocumentApp.getActiveDocument().getBody().editAsText();
-                // break;
+                break;
+            case "FORMAT":
+                const paragraphs = DocumentApp.getActiveDocument().getBody().getParagraphs();
+                style[DocumentApp.Attribute.FONT_FAMILY] = "Palatino Linotype";
+                paragraphs.forEach((paragraph) => {
+                    paragraph.setLineSpacing(1.15);
+                    paragraph.setAttributes(style);
+                });
             case "SHRINK":
-                console.log(selection.length);
                 selection.forEach((rangeElement) => {
-                    // const attributes = rangeElement.getElement().getAttributes();
-                    // if (attributes.BOLD == null &&
-                    //     attributes.UNDERLINE == null &&
-                    //     attributes.BACKGROUND_COLOR == null) {
-                    //         style[DocumentApp.Attribute.FONT_SIZE] = 8;
-                    //         applyStyle([rangeElement], style);
-                    // }
                     const textStart = rangeElement.getStartOffset();
                     const textEnd = rangeElement.getEndOffsetInclusive();
                     // if the offset isn't found
@@ -104,9 +99,8 @@ function formatText(formatType) {
                     if (rangeElement.getStartOffset() == -1 ||
                         rangeElement.getEndOffsetInclusive() == -1)
                         return;
-                    let shrinkStart = 0;
                     for (let i = textStart; i < textEnd + 1; i++) {
-                        const attributes = rangeElement.getElement().asText();
+                        const attributes = rangeElement.getElement().asText().getAttributes(i);
                         if (attributes.BOLD == null &&
                             attributes.UNDERLINE == null &&
                             attributes.BACKGROUND_COLOR == null) {
@@ -114,9 +108,7 @@ function formatText(formatType) {
                                 rangeElement.getElement()
                                     .asText()
                                     .editAsText()
-                                // INDICES WILL BE WEIRD, TODO: DEAL WITH THIS
-                                    // .setAttributes(shrinkStart, i - 1, style)
-                                // reset shrinkstart
+                                    .setAttributes(i, i, style)
                         }
                     }
                 });
