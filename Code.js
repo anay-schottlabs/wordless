@@ -42,15 +42,6 @@ function applyStyle(rangeElements, style) {
     });
 }
 
-function getSelectionText(rangeElement) {
-    const start = rangeElement.getStartOffset();
-    const end = rangeElement.getEndOffsetInclusive();
-    return rangeElement.getElement()    // get the element
-        .asText()                       // convert to text
-        .getText()                      // extract all text (not just selection)
-        .slice(start, end + 1);         // use text positions to cut out only selection
-}
-
 // this method is called to format selected text
 // the formatType parameter determines what type of styling the text is given
 function formatText(formatType) {
@@ -81,14 +72,24 @@ function formatText(formatType) {
                 applyStyle(selection, style);
                 break;
             case "CONDENSE":
+                // iterating from the last RangeElement/paragraph to the first
+                for (let i = selection.length - 1; i >= 0; i--){
+                    const rangeElement = selection[i];
+                    // if the paragraph is empty, delete it
+                    if (!rangeElement.getElement().asText().getText().trim()) {
+                        rangeElement.getElement().removeFromParent();
+                    }
+                }
                 break;
             case "FORMAT":
-                const paragraphs = DocumentApp.getActiveDocument().getBody().getParagraphs();
+                var paragraphs = DocumentApp.getActiveDocument().getBody().getParagraphs();
                 style[DocumentApp.Attribute.FONT_FAMILY] = "Palatino Linotype";
+                style[DocumentApp.Attribute.FOREGROUND_COLOR] = "#000000";
                 paragraphs.forEach((paragraph) => {
                     paragraph.setLineSpacing(1.15);
                     paragraph.setAttributes(style);
                 });
+                break;
             case "SHRINK":
                 selection.forEach((rangeElement) => {
                     const textStart = rangeElement.getStartOffset();
