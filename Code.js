@@ -72,13 +72,11 @@ function formatText(formatType) {
                 applyStyle(selection, style);
                 break;
             case "CONDENSE":
-                // iterating from the last RangeElement/paragraph to the first
-                for (let i = selection.length - 1; i >= 0; i--){
-                    const rangeElement = selection[i];
-                    // if the paragraph is empty, delete it
-                    if (!rangeElement.getElement().asText().getText().trim()) {
-                        rangeElement.getElement().removeFromParent();
+                for (let i = selection.length - 1; i > 0; i--) {
+                    if (selection[i].getElement().asText().getText().trim() != "") {
+                        selection[i].getElement().asText().editAsText().insertText(0, " ");
                     }
+                    selection[i].getElement().merge();
                 }
                 break;
             case "FORMAT":
