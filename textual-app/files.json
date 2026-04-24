@@ -1,4 +1,4 @@
 {
-    "File 1": "markdown content here...",
-    "File 2": "some more test content..."
+    "First File": "(first line)\n(second line)",
+    "File 2": "markdown content"
 }

@@ -1,0 +1,11 @@
+TextArea {
+    height: 100%;
+    width: 1.5fr;
+    border: solid blue;
+}
+
+Markdown {
+    height: 100%;
+    width: 1fr;
+    border: solid red;
+}
