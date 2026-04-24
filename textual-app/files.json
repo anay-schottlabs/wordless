@@ -1,4 +1,4 @@
 {
-    "First File": "# File Name Header\n## Card Name\n\nCard content\n**bolded text**\n*italicized text*\n`highlighted text`",
+    "First File": "# File Name Header\n## Card Name\n\nCard content\n**bolded text**\n*italicized text*\n`highlighted text`\n\n(text to be condensed)\n(some other text that will be condensed)\n(even more text to be condensed)",
     "File 2": "markdown content"
 }

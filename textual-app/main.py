@@ -20,7 +20,7 @@ class Wordless(App):
     ENABLE_COMMAND_PALETTE = False
     CSS_PATH = "styles.tcss"
     BINDINGS = [
-        Binding("ctrl+1", "underline", "underline"),
+        Binding("ctrl+1", "italicize", "italicize"),
         Binding("ctrl+2", "highlight", "highlight"),
         Binding("ctrl+3", "condense", "condense"),
         Binding("ctrl+s", "save", "save"),
@@ -53,17 +53,21 @@ class Wordless(App):
         md_text = self.textarea.text.replace("\n", "  \n")
         self.markdown.update(md_text)
 
-    def action_underline(self) -> None:
+    def action_italicize(self) -> None:
         pass
 
     def action_highlight(self) -> None:
         pass
 
     def action_condense(self) -> None:
-        pass
+        start = self.textarea.selection.start
+        end = self.textarea.selection.end
+        self.textarea.replace(
+            self.textarea.text.replace("\n", " "),
+            start, end
+        )
 
     def action_load(self) -> None:
-        print("command worked")
         self.textarea.text = load_files()[self.current_filename]
 
     def action_save(self) -> None:
