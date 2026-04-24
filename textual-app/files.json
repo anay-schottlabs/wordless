@@ -1,4 +1,4 @@
 {
-    "First File": "(first line)\n(second line)",
+    "First File": "# File Name Header\n## Card Name\n\nCard content\n**bolded text**\n*italicized text*\n`highlighted text`",
     "File 2": "markdown content"
 }

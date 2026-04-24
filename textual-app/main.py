@@ -1,4 +1,5 @@
 from textual.app import App, ComposeResult
+from textual.binding import Binding
 from textual.widgets import Footer, Header, TextArea, Markdown, Tabs
 from textual.containers import Horizontal
 import json
@@ -19,11 +20,11 @@ class Wordless(App):
     ENABLE_COMMAND_PALETTE = False
     CSS_PATH = "styles.tcss"
     BINDINGS = [
-        ("ctrl+1", "underline", "underline"),
-        ("ctrl+2", "highlight", "highlight"),
-        ("ctrl+3", "condense", "condense"),
-        ("ctrl+s", "save", "save"),
-        ("ctrl+l", "load", "load")
+        Binding("ctrl+1", "underline", "underline"),
+        Binding("ctrl+2", "highlight", "highlight"),
+        Binding("ctrl+3", "condense", "condense"),
+        Binding("ctrl+s", "save", "save"),
+        Binding("ctrl+l", "load", "load")
     ]
 
     def compose(self) -> ComposeResult:
@@ -43,13 +44,14 @@ class Wordless(App):
         self.textarea.focus()
         self.current_filename = event.tab.label
         loaded_content = files[self.current_filename]
-        self.textarea.clear()
-        self.textarea.insert(loaded_content)
+        self.textarea.text = loaded_content
+        self.past_text = loaded_content
         self.markdown.update(loaded_content)
 
     def on_text_area_changed(self) -> None:
         files[self.current_filename] = self.textarea.text
-        self.markdown.update(self.textarea.text)
+        md_text = self.textarea.text.replace("\n", "  \n")
+        self.markdown.update(md_text)
 
     def action_underline(self) -> None:
         pass
@@ -62,8 +64,7 @@ class Wordless(App):
 
     def action_load(self) -> None:
         print("command worked")
-        self.textarea.clear()
-        self.textarea.insert(load_files()[self.current_filename])
+        self.textarea.text = load_files()[self.current_filename]
 
     def action_save(self) -> None:
         save_files()
