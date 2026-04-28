@@ -2,27 +2,14 @@ from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.widgets import Footer, Header, TextArea, Markdown, Tabs
 from textual.containers import Horizontal
-import json
-
-# loading all files
-def load_files():
-    with open("files.json", "r") as files_json:
-        # parse the file content into a dictionary
-        loaded_files = json.load(files_json)
-    return loaded_files
-
-# saving all files
-def save_files():
-    with open("files.json", "w") as files_json:
-        # dump the files dictionary as JSON
-        json.dump(files, files_json, indent=4)
+import file_manager
 
 # load files on app startup
-files = load_files()
+files = file_manager.load_files()
+
 
 # creating the app class
 class Wordless(App):
-
     # hides one of the default bindings
     # hiding it saves screen space
     ENABLE_COMMAND_PALETTE = False
@@ -37,7 +24,7 @@ class Wordless(App):
         Binding("ctrl+2", "highlight", "highlight"),
         Binding("ctrl+3", "condense", "condense"),
         Binding("ctrl+s", "save", "save"),
-        Binding("ctrl+l", "load", "load")
+        Binding("ctrl+l", "load", "load"),
     ]
 
     # creates the layout of the app
@@ -98,18 +85,16 @@ class Wordless(App):
     def action_condense(self) -> None:
         start = self.textarea.selection.start
         end = self.textarea.selection.end
-        self.textarea.replace(
-            self.textarea.text.replace("\n", " "),
-            start, end
-        )
+        self.textarea.replace(self.textarea.text.replace("\n", " "), start, end)
 
     # loads the files and replaces the current tab's text with the new content
     def action_load(self) -> None:
-        self.textarea.text = load_files()[self.current_filename]
+        self.textarea.text = file_manager.load_files()[self.current_filename]
 
     # saves all files
     def action_save(self) -> None:
-        save_files()
+        file_manager.save_files(files)
+
 
 # runs the app
 if __name__ == "__main__":
