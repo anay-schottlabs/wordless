@@ -9,3 +9,7 @@ Markdown {
     width: 1fr;
     border: solid red;
 }
+
+Editor {
+    height: 95%;
+}
