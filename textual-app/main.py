@@ -9,6 +9,7 @@ from textual.widgets import (
     Button,
     Input,
     Label,
+    Tab
 )
 from textual.containers import Horizontal
 import file_manager
@@ -128,7 +129,7 @@ class Wordless(App):
         # goes through every file
         # creates tabs, naming them the filename
         for file in list(self.files.keys()):
-            self.tabs.add_tab(file)
+            self.tabs.add_tab(Tab(file, id=file.replace(" ", "-")))
 
     # called when the user switches tabs
     # this is also called when the first tab is loaded by default
@@ -162,8 +163,10 @@ class Wordless(App):
 
     def return_home(self) -> None:
         self.home.text_input.display = False
+        self.home.text_input.value = ""
         self.home.event_button.display = False
         self.home.status_label.display = False
+        self.home.files_label.display = False
         self.home.cancel_button.display = False
         self.home.event_button_state = EventButtonState.NONE
         self.home.reset_buttons()
@@ -181,14 +184,21 @@ class Wordless(App):
         ):
             state = self.home.event_button_state
             success = False
+
+
+            # if the file name is empty or just whitespace
+            if self.home.text_input.value.strip() == "":
+                self.home.status_label.display = True
+                self.home.status_label.update("Please enter a file name")
+                return
+
+            # if the previous condition checks for an empty input box
+            # if it is passed, the input box contains text
+            # the content of this text is not validated, that is handled by individual methods
+            
             if state == EventButtonState.CREATE:
-                # if the file name is empty or just whitespace
-                if self.home.text_input.value.strip() == "":
-                    self.home.status_label.display = True
-                    self.home.status_label.update("Please enter a file name")
-                    return
                 # if the file already exists
-                elif self.home.text_input.value in list(self.files.keys()):
+                if self.home.text_input.value in list(self.files.keys()):
                     self.home.status_label.display = True
                     self.home.status_label.update("File with this name already exists")
                     return
@@ -196,14 +206,24 @@ class Wordless(App):
                 else:
                     self.files[self.home.text_input.value] = ""
                     file_manager.save_files(self.files)
-                    self.tabs.add_tab(self.home.text_input.value)
+                    self.tabs.add_tab(Tab(self.home.text_input.value, id=self.home.text_input.value.replace(" ", "-")))
                     success = True
             elif state == EventButtonState.SELECT_RENAME:
                 pass
             elif state == EventButtonState.RENAME:
                 pass
             elif state == EventButtonState.DELETE:
-                pass
+                # if the file doesn't exist
+                if self.home.text_input.value not in list(self.files.keys()):
+                    self.home.status_label.display = True
+                    self.home.status_label.update("File with this name doesn't exist")
+                    return
+                # nothing is wrong, delete the file
+                else:
+                    del self.files[self.home.text_input.value]
+                    file_manager.save_files(self.files)
+                    self.tabs.remove_tab(self.home.text_input.value.replace(" ", "-"))
+                    success = True
             elif state == EventButtonState.SUCCESS:
                 self.return_home()
 
@@ -211,6 +231,7 @@ class Wordless(App):
                 self.home.text_input.display = False
                 self.home.status_label.display = True
                 self.home.event_button_state = EventButtonState.SUCCESS
+                self.home.files_label.display = False
                 self.home.event_button.label = "Continue"
                 self.home.cancel_button.display = False
                 self.home.status_label.update("Success!")
@@ -220,6 +241,8 @@ class Wordless(App):
 
         else:
             self.home.hide_all_buttons()
+            self.home.files_label.display = True
+            self.home.files_label.update("Files: " + ", ".join(list(self.files.keys())))
             self.home.text_input.display = True
             self.home.text_input.focus()
             self.home.cancel_button.display = True
@@ -234,6 +257,7 @@ class Wordless(App):
             elif event.button.id == "delete":
                 self.home.text_input.placeholder = "Name of file to delete"
                 self.home.event_button.label = "Delete"
+                self.home.event_button_state = EventButtonState.DELETE
 
         self.set_focus(None)
 
