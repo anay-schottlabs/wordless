@@ -1,3 +1,5 @@
+from pygments.token import Error
+from socket import SO_PASSSEC
 from textual.app import App, ComposeResult, Widget
 from textual.binding import Binding
 from textual.widgets import (
@@ -13,6 +15,7 @@ from textual.widgets import (
 )
 from textual.containers import Horizontal
 import file_manager
+import network
 from enum import Enum, auto
 
 
@@ -61,6 +64,32 @@ class Home(Widget):
 
         yield Horizontal(self.cancel_button, self.event_button)
 
+class Network(Widget):
+    def __init__(self):
+        super().__init__()
+        self.event_button_state = NetworkEventButtonState.NONE
+
+    def compose(self) -> ComposeResult:
+        self.host_button = Button("Host", id="host")
+        self.join_button = Button("Join", id="join")
+
+        yield Horizontal(self.host_button, self.join_button)
+
+        self.conn_input = Input()
+        self.conn_input.display = False
+        yield self.conn_input
+
+        self.status_label = Label()
+        self.status_label.display = False
+        yield self.status_label
+
+        self.cancel_button = Button("Cancel", id="network_cancel")
+        self.cancel_button.display = False
+        
+        self.event_button = Button(id="network_event")
+        self.event_button.display = False
+
+        yield Horizontal(self.cancel_button, self.event_button)
 
 class EventButtonState(Enum):
     NONE = auto()
@@ -70,6 +99,17 @@ class EventButtonState(Enum):
     DELETE = auto()
     SUCCESS = auto()
 
+class NetworkEventButtonState(Enum):
+    NONE = auto()
+    HOST_FILE = auto()
+    HOST_CONN = auto()
+    CLOSE = auto()
+    JOIN = auto()
+
+class ActiveTab(Enum):
+    HOME = auto()
+    NETWORK = auto()
+    EDITOR = auto()
 
 # a class for the text editor
 class Editor(Widget):
@@ -108,13 +148,17 @@ class Wordless(App):
         yield Header()
         yield Footer()
 
-        # creates a new tab for the first file in the files dictionary
-        self.tabs = Tabs("Home")
+        # creates a new tab for the home page and network page
+        self.tabs = Tabs("Home", "Network")
         yield self.tabs
 
         # creates the home screen
         self.home = Home()
         yield self.home
+
+        # creates the network screen
+        self.network = Network()
+        yield self.network
 
         # creates the text editor
         self.editor = Editor()
@@ -137,13 +181,24 @@ class Wordless(App):
         # if the user switched to the home tab
         # display the home screen
         if str(event.tab.label).lower() == "home":
+            self.active_tab = ActiveTab.HOME
             self.home.display = True
+            self.network.display = False
+            self.editor.display = False
+        # if the user switched to the network tab
+        # display the network screen
+        elif str(event.tab.label).lower() == "network":
+            self.active_tab = ActiveTab.NETWORK
+            self.network.display = True
+            self.home.display = False
             self.editor.display = False
         # if the user switched to a file tab
         # load the contents of the file
         # open editor view
         else:
+            self.active_tab = ActiveTab.EDITOR
             self.editor.display = True
+            self.network.display = False
             self.home.display = False
             # focuses the textarea so that users can start typing without having to click on it manually
             self.textarea.focus()
@@ -171,93 +226,209 @@ class Wordless(App):
         self.home.event_button_state = EventButtonState.NONE
         self.home.reset_buttons()
 
+    def return_network_page(self) -> None:
+        self.network.host_button.display = True
+        self.network.join_button.display = True
+        self.network.conn_input.display = False
+        self.network.conn_input.value = ""
+        self.network.status_label.display = False
+        self.network.cancel_button.display = False
+        self.network.event_button.display = False
+        self.network.event_button_state = NetworkEventButtonState.NONE
+
     # called when a button is pressed
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        if event.button.id == "save" or event.button.id == "load":
-            if event.button.id == "save":
-                file_manager.save_files(self.files)
-            elif event.button.id == "load":
-                self.files = file_manager.load_files()
-        elif (
-            event.button.id == "event"
-            and self.home.event_button_state != EventButtonState.NONE
-        ):
-            state = self.home.event_button_state
-            success = False
 
-
-            # if the file name is empty or just whitespace
-            if self.home.text_input.value.strip() == "":
-                self.home.status_label.display = True
-                self.home.status_label.update("Please enter a file name")
-                return
-
-            # if the previous condition checks for an empty input box
-            # if it is passed, the input box contains text
-            # the content of this text is not validated, that is handled by individual methods
+        # button functions for the home tab
+        
+        if self.active_tab == ActiveTab.HOME:
             
-            if state == EventButtonState.CREATE:
-                # if the file already exists
-                if self.home.text_input.value in list(self.files.keys()):
-                    self.home.status_label.display = True
-                    self.home.status_label.update("File with this name already exists")
-                    return
-                # nothing is wrong, create the file
-                else:
-                    self.files[self.home.text_input.value] = ""
+            if event.button.id == "save" or event.button.id == "load":
+                if event.button.id == "save":
                     file_manager.save_files(self.files)
-                    self.tabs.add_tab(Tab(self.home.text_input.value, id=self.home.text_input.value.replace(" ", "-")))
-                    success = True
-            elif state == EventButtonState.SELECT_RENAME:
-                pass
-            elif state == EventButtonState.RENAME:
-                pass
-            elif state == EventButtonState.DELETE:
-                # if the file doesn't exist
-                if self.home.text_input.value not in list(self.files.keys()):
+                elif event.button.id == "load":
+                    self.files = file_manager.load_files()
+            elif (
+                event.button.id == "event"
+                and self.home.event_button_state != EventButtonState.NONE
+            ):
+                state = self.home.event_button_state
+                success = False
+    
+    
+                # if the file name is empty or just whitespace
+                if self.home.text_input.value.strip() == "":
                     self.home.status_label.display = True
-                    self.home.status_label.update("File with this name doesn't exist")
+                    self.home.status_label.update("Please enter a file name")
                     return
-                # nothing is wrong, delete the file
-                else:
-                    del self.files[self.home.text_input.value]
-                    file_manager.save_files(self.files)
-                    self.tabs.remove_tab(self.home.text_input.value.replace(" ", "-"))
-                    success = True
-            elif state == EventButtonState.SUCCESS:
+    
+                # the previous condition checks for an empty input box
+                # if it is passed, the input box contains text
+                # the content of this text is not validated, that is handled by individual methods
+                
+                if state == EventButtonState.CREATE:
+                    # if the file already exists
+                    if self.home.text_input.value in list(self.files.keys()):
+                        self.home.status_label.display = True
+                        self.home.status_label.update("File with this name already exists")
+                        return
+                    # if the file name is invalid
+                    if self.home.text_input.value in ["Home", "Network"]:
+                        self.home.status_label.display = True
+                        self.home.status_label.update("Invalid file name")
+                        return
+                    # nothing is wrong, create the file
+                    else:
+                        self.files[self.home.text_input.value] = ""
+                        file_manager.save_files(self.files)
+                        self.tabs.add_tab(Tab(self.home.text_input.value, id=self.home.text_input.value.replace(" ", "-")))
+                        success = True
+                elif state == EventButtonState.SELECT_RENAME:
+                    pass
+                elif state == EventButtonState.RENAME:
+                    pass
+                elif state == EventButtonState.DELETE:
+                    # if the file doesn't exist
+                    if self.home.text_input.value not in list(self.files.keys()):
+                        self.home.status_label.display = True
+                        self.home.status_label.update("File with this name doesn't exist")
+                        return
+                    # nothing is wrong, delete the file
+                    else:
+                        del self.files[self.home.text_input.value]
+                        file_manager.save_files(self.files)
+                        self.tabs.remove_tab(self.home.text_input.value.replace(" ", "-"))
+                        success = True
+                elif state == EventButtonState.SUCCESS:
+                    self.return_home()
+    
+                if success == True:
+                    self.home.text_input.display = False
+                    self.home.status_label.display = True
+                    self.home.event_button_state = EventButtonState.SUCCESS
+                    self.home.files_label.display = False
+                    self.home.event_button.label = "Continue"
+                    self.home.cancel_button.display = False
+                    self.home.status_label.update("Success!")
+    
+            elif event.button.id == "cancel":
                 self.return_home()
+    
+            else:
+                self.home.hide_all_buttons()
+                self.home.files_label.display = True
+                self.home.files_label.update("Files: " + ", ".join(list(self.files.keys())))
+                self.home.text_input.display = True
+                self.home.text_input.focus()
+                self.home.cancel_button.display = True
+                self.home.event_button.display = True
+                if event.button.id == "new":
+                    self.home.text_input.placeholder = "New file name"
+                    self.home.event_button.label = "Create"
+                    self.home.event_button_state = EventButtonState.CREATE
+                elif event.button.id == "rename":
+                    self.home.text_input.placeholder = "Name of file to rename"
+                    self.home.event_button.label = "Select"
+                elif event.button.id == "delete":
+                    self.home.text_input.placeholder = "Name of file to delete"
+                    self.home.event_button.label = "Delete"
+                    self.home.event_button_state = EventButtonState.DELETE
 
-            if success == True:
-                self.home.text_input.display = False
-                self.home.status_label.display = True
-                self.home.event_button_state = EventButtonState.SUCCESS
-                self.home.files_label.display = False
-                self.home.event_button.label = "Continue"
-                self.home.cancel_button.display = False
-                self.home.status_label.update("Success!")
+        # button functions for the network tab
+        
+        elif self.active_tab == ActiveTab.NETWORK:
+            
+            if event.button.id == "network_event":
+                
+                state = self.network.event_button_state
+                
+                # checks if input box is empty or just whitespace
+                if self.network.conn_input.value.strip() == "":
+                    self.network.status_label.display = True
+                    self.network.status_label.update("Please enter a value")
+                    return
 
-        elif event.button.id == "cancel":
-            self.return_home()
+                # the previous condition checks for an empty input box
+                # if it is passed, the input box contains text
+                # the content of this text is not validated, that is handled by individual methods
+                
+                if state == NetworkEventButtonState.HOST_FILE:
+                    if self.network.conn_input.value not in list(self.files.keys()):
+                        self.network.status_label.display = True
+                        self.network.status_label.update("File doesn't exist")
+                        return
+                    self.host_file = self.network.conn_input.value
+                    self.network.event_button_state = NetworkEventButtonState.HOST_CONN
+                    self.network.conn_input.value = ""
+                    self.network.conn_input.placeholder = "Port Number"
+                    self.network.event_button.label = "Host"
 
-        else:
-            self.home.hide_all_buttons()
-            self.home.files_label.display = True
-            self.home.files_label.update("Files: " + ", ".join(list(self.files.keys())))
-            self.home.text_input.display = True
-            self.home.text_input.focus()
-            self.home.cancel_button.display = True
-            self.home.event_button.display = True
-            if event.button.id == "new":
-                self.home.text_input.placeholder = "New file name"
-                self.home.event_button.label = "Create"
-                self.home.event_button_state = EventButtonState.CREATE
-            elif event.button.id == "rename":
-                self.home.text_input.placeholder = "Name of file to rename"
-                self.home.event_button.label = "Select"
-            elif event.button.id == "delete":
-                self.home.text_input.placeholder = "Name of file to delete"
-                self.home.event_button.label = "Delete"
-                self.home.event_button_state = EventButtonState.DELETE
+                elif state == NetworkEventButtonState.HOST_CONN:
+                    # check if port number is an int
+                    try:
+                        port = int(self.network.conn_input.value)
+                        self.network.status_label.display = True
+                        self.network.status_label.update(
+                            f"Hosting {self.host_file} on {network.HOST}:{port}"
+                        )
+                        self.host = network.Host(network.HOST, port)
+                        self.host_conn = self.host.run()
+                        self.network.event_button_state = NetworkEventButtonState.CLOSE
+                        self.network.conn_input.display = False
+                        self.network.cancel_button.display = False
+                        self.network.event_button.label = "Close Connection"
+                    except ValueError:
+                        self.network.status_label.display = True
+                        self.network.status_label.update("Port must be a number")
+                        return
+                    except OSError as e:
+                        # error 98: port already in use
+                        if e.errno == 98:
+                            self.network.status_label.display = True
+                            self.network.status_label.update("Port already in use")
+
+                elif state == NetworkEventButtonState.CLOSE:
+                    self.host.close()
+                    self.return_network_page()
+                
+                elif state == NetworkEventButtonState.JOIN:
+                    if ":" not in self.network.conn_input.value:
+                        self.network.status_label.display = True
+                        self.network.status_label.update("Invalid format, needs a ':'")
+                        return
+                    try:
+                        input_host, input_port = self.network.conn_input.value.split(":")
+                        self.client = network.Client(input_host, int(input_port))
+                        self.client_conn = self.client.run()
+                        self.network.status_label.display = True
+                        self.network.status_label.update("Connected to host")
+                    except Error as e:
+                        self.network.status_label.display = True
+                        self.network.status_label.update(
+                            # f"Could not connect to host on {input_host}:{input_port}"
+                            e.message
+                        )
+                        self.client.close()
+                        return
+
+            elif event.button.id == "network_cancel":
+                self.return_network_page()
+
+            else:
+                self.network.host_button.display = False
+                self.network.join_button.display = False
+                self.network.conn_input.display = True
+                self.network.conn_input.focus()
+                self.network.cancel_button.display = True
+                self.network.event_button.display = True
+                if event.button.id == "host":
+                    self.network.conn_input.placeholder = "Name of file to host"
+                    self.network.event_button.label = "Choose File"
+                    self.network.event_button_state = NetworkEventButtonState.HOST_FILE
+                elif event.button.id == "join":
+                    self.network.conn_input.placeholder = "IP Address : Port Number"
+                    self.network.event_button.label = "Join"
+                    self.network.event_button_state = NetworkEventButtonState.JOIN
 
         self.set_focus(None)
 
