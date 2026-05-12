@@ -44,6 +44,7 @@ def get_data(conn: socket.socket) -> str:
 def send_data(conn: socket.socket, data: str) -> None:
     conn.sendall(data.encode())
 
+
 # Host code
 if __name__ == "__main__":
     port = input("Port: ")

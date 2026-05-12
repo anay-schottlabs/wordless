@@ -1,5 +1,6 @@
 from textual.app import App, ComposeResult, Widget
 from textual.binding import Binding
+from textual.worker import work
 from textual.widgets import (
     Footer,
     Header,
@@ -89,6 +90,10 @@ class Network(Widget):
         self.event_button = Button(id="network_event")
         self.event_button.display = False
 
+        self.markdown = Markdown()
+        self.markdown.display = False
+        yield self.markdown
+
         yield Horizontal(self.cancel_button, self.event_button)
 
 
@@ -105,7 +110,7 @@ class NetworkEventButtonState(Enum):
     NONE = auto()
     HOST_FILE = auto()
     HOST_CONN = auto()
-    CLOSE = auto()
+    CLOSE_HOST = auto()
     JOIN = auto()
 
 
@@ -219,6 +224,9 @@ class Wordless(App):
         self.files[self.current_filename] = self.textarea.text  # update files dict
         md_text = self.textarea.text.replace("\n", "  \n")  # handle new lines
         self.markdown.update(md_text)
+        # if hosting a file, send the updated content to the client
+        if self.network.event_button_state == NetworkEventButtonState.CLOSE_HOST:
+            network.send_data(self.host_conn, self.files[self.host_file])
 
     def return_home(self) -> None:
         self.home.text_input.display = False
@@ -239,6 +247,42 @@ class Wordless(App):
         self.network.cancel_button.display = False
         self.network.event_button.display = False
         self.network.event_button_state = NetworkEventButtonState.NONE
+
+    @work(thread=True)
+    def _connect_client(self, input_host: str, input_port: int) -> None:
+        try:
+            self.client = network.Client(input_host, input_port)
+            self.client_conn = self.client.run()
+            # update UI on successful connection
+            self.call_from_thread(
+                self.network.status_label.update, "Connected to host"
+            )
+            self.call_from_thread(
+                setattr, self.network.status_label, "display", True
+            )
+            self.call_from_thread(
+                setattr, self.network.conn_input, "display", False
+            )
+            self.call_from_thread(
+                setattr, self.network.markdown, "display", True
+            )
+            # receive data in background
+            while True:
+                self.data = network.get_data(self.client_conn)
+                if self.data != "":
+                    self.call_from_thread(
+                        self.network.markdown.update, self.data
+                    )
+        except Exception:
+            self.call_from_thread(
+                self.network.status_label.update,
+                f"Could not connect to host on {input_host}:{input_port}",
+            )
+            self.call_from_thread(
+                setattr, self.network.status_label, "display", True
+            )
+            if self.client:
+                self.client.close()
 
     # called when a button is pressed
     def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -382,6 +426,7 @@ class Wordless(App):
                 elif state == NetworkEventButtonState.HOST_CONN:
                     # check if port number is an int
                     try:
+                        # host file
                         port = int(self.network.conn_input.value)
                         self.network.status_label.display = True
                         self.network.status_label.update(
@@ -389,10 +434,14 @@ class Wordless(App):
                         )
                         self.host = network.Host(network.HOST, port)
                         self.host_conn = self.host.run()
-                        self.network.event_button_state = NetworkEventButtonState.CLOSE
+                        # change UI state
+                        # changes buttons so that user can close connection
+                        self.network.event_button_state = NetworkEventButtonState.CLOSE_HOST
                         self.network.conn_input.display = False
                         self.network.cancel_button.display = False
                         self.network.event_button.label = "Close Connection"
+                        # send data
+                        network.send_data(self.host_conn, self.files[self.host_file])
                     except ValueError:
                         self.network.status_label.display = True
                         self.network.status_label.update("Port must be a number")
@@ -403,30 +452,20 @@ class Wordless(App):
                             self.network.status_label.display = True
                             self.network.status_label.update("Port already in use")
 
-                elif state == NetworkEventButtonState.CLOSE:
+                elif state == NetworkEventButtonState.CLOSE_HOST:
                     self.host.close()
                     self.return_network_page()
+                    self.network.event_button_state == NetworkEventButtonState.NONE
 
                 elif state == NetworkEventButtonState.JOIN:
                     if ":" not in self.network.conn_input.value:
                         self.network.status_label.display = True
                         self.network.status_label.update("Invalid format, needs a ':'")
                         return
-                    try:
-                        input_host, input_port = self.network.conn_input.value.split(
-                            ":"
-                        )
-                        self.client = network.Client(input_host, int(input_port))
-                        self.client_conn = self.client.run()
-                        self.network.status_label.display = True
-                        self.network.status_label.update("Connected to host")
-                    except:
-                        self.network.status_label.display = True
-                        self.network.status_label.update(
-                            f"Could not connect to host on {input_host}:{input_port}"
-                        )
-                        self.client.close()
-                        return
+                    input_host, input_port = self.network.conn_input.value.split(
+                        ":"
+                    )
+                    self._connect_client(input_host, int(input_port))
 
             elif event.button.id == "network_cancel":
                 self.return_network_page()
