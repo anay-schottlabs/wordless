@@ -1,5 +1,3 @@
-from pygments.token import Error
-from socket import SO_PASSSEC
 from textual.app import App, ComposeResult, Widget
 from textual.binding import Binding
 from textual.widgets import (
@@ -11,12 +9,13 @@ from textual.widgets import (
     Button,
     Input,
     Label,
-    Tab
+    Tab,
 )
 from textual.containers import Horizontal
 import file_manager
 import network
 from enum import Enum, auto
+import re
 
 
 # a class for the home screen
@@ -64,6 +63,7 @@ class Home(Widget):
 
         yield Horizontal(self.cancel_button, self.event_button)
 
+
 class Network(Widget):
     def __init__(self):
         super().__init__()
@@ -85,11 +85,12 @@ class Network(Widget):
 
         self.cancel_button = Button("Cancel", id="network_cancel")
         self.cancel_button.display = False
-        
+
         self.event_button = Button(id="network_event")
         self.event_button.display = False
 
         yield Horizontal(self.cancel_button, self.event_button)
+
 
 class EventButtonState(Enum):
     NONE = auto()
@@ -99,6 +100,7 @@ class EventButtonState(Enum):
     DELETE = auto()
     SUCCESS = auto()
 
+
 class NetworkEventButtonState(Enum):
     NONE = auto()
     HOST_FILE = auto()
@@ -106,10 +108,12 @@ class NetworkEventButtonState(Enum):
     CLOSE = auto()
     JOIN = auto()
 
+
 class ActiveTab(Enum):
     HOME = auto()
     NETWORK = auto()
     EDITOR = auto()
+
 
 # a class for the text editor
 class Editor(Widget):
@@ -149,7 +153,7 @@ class Wordless(App):
         yield Footer()
 
         # creates a new tab for the home page and network page
-        self.tabs = Tabs("Home", "Network")
+        self.tabs = Tabs(Tab("--HOME--", id="home"), Tab("--NETWORK--", id="network"))
         yield self.tabs
 
         # creates the home screen
@@ -180,14 +184,14 @@ class Wordless(App):
     def on_tabs_tab_activated(self, event: Tabs.TabActivated) -> None:
         # if the user switched to the home tab
         # display the home screen
-        if str(event.tab.label).lower() == "home":
+        if event.tab.id == "home":
             self.active_tab = ActiveTab.HOME
             self.home.display = True
             self.network.display = False
             self.editor.display = False
         # if the user switched to the network tab
         # display the network screen
-        elif str(event.tab.label).lower() == "network":
+        elif event.tab.id == "network":
             self.active_tab = ActiveTab.NETWORK
             self.network.display = True
             self.home.display = False
@@ -238,11 +242,9 @@ class Wordless(App):
 
     # called when a button is pressed
     def on_button_pressed(self, event: Button.Pressed) -> None:
-
         # button functions for the home tab
-        
+
         if self.active_tab == ActiveTab.HOME:
-            
             if event.button.id == "save" or event.button.id == "load":
                 if event.button.id == "save":
                     file_manager.save_files(self.files)
@@ -254,26 +256,31 @@ class Wordless(App):
             ):
                 state = self.home.event_button_state
                 success = False
-    
-    
+
                 # if the file name is empty or just whitespace
                 if self.home.text_input.value.strip() == "":
                     self.home.status_label.display = True
                     self.home.status_label.update("Please enter a file name")
                     return
-    
+
                 # the previous condition checks for an empty input box
                 # if it is passed, the input box contains text
                 # the content of this text is not validated, that is handled by individual methods
-                
+
                 if state == EventButtonState.CREATE:
                     # if the file already exists
                     if self.home.text_input.value in list(self.files.keys()):
                         self.home.status_label.display = True
-                        self.home.status_label.update("File with this name already exists")
+                        self.home.status_label.update(
+                            "File with this name already exists"
+                        )
                         return
                     # if the file name is invalid
-                    if self.home.text_input.value in ["Home", "Network"]:
+                    if (
+                        re.search(r"[^A-Za-z0-9 ]", self.home.text_input.value)
+                        or self.home.text_input.value == "home"
+                        or self.home.text_input.value == "network"
+                    ):
                         self.home.status_label.display = True
                         self.home.status_label.update("Invalid file name")
                         return
@@ -281,7 +288,12 @@ class Wordless(App):
                     else:
                         self.files[self.home.text_input.value] = ""
                         file_manager.save_files(self.files)
-                        self.tabs.add_tab(Tab(self.home.text_input.value, id=self.home.text_input.value.replace(" ", "-")))
+                        self.tabs.add_tab(
+                            Tab(
+                                self.home.text_input.value,
+                                id=self.home.text_input.value.replace(" ", "-"),
+                            )
+                        )
                         success = True
                 elif state == EventButtonState.SELECT_RENAME:
                     pass
@@ -291,17 +303,21 @@ class Wordless(App):
                     # if the file doesn't exist
                     if self.home.text_input.value not in list(self.files.keys()):
                         self.home.status_label.display = True
-                        self.home.status_label.update("File with this name doesn't exist")
+                        self.home.status_label.update(
+                            "File with this name doesn't exist"
+                        )
                         return
                     # nothing is wrong, delete the file
                     else:
                         del self.files[self.home.text_input.value]
                         file_manager.save_files(self.files)
-                        self.tabs.remove_tab(self.home.text_input.value.replace(" ", "-"))
+                        self.tabs.remove_tab(
+                            self.home.text_input.value.replace(" ", "-")
+                        )
                         success = True
                 elif state == EventButtonState.SUCCESS:
                     self.return_home()
-    
+
                 if success == True:
                     self.home.text_input.display = False
                     self.home.status_label.display = True
@@ -310,14 +326,16 @@ class Wordless(App):
                     self.home.event_button.label = "Continue"
                     self.home.cancel_button.display = False
                     self.home.status_label.update("Success!")
-    
+
             elif event.button.id == "cancel":
                 self.return_home()
-    
+
             else:
                 self.home.hide_all_buttons()
                 self.home.files_label.display = True
-                self.home.files_label.update("Files: " + ", ".join(list(self.files.keys())))
+                self.home.files_label.update(
+                    "Files: " + ", ".join(list(self.files.keys()))
+                )
                 self.home.text_input.display = True
                 self.home.text_input.focus()
                 self.home.cancel_button.display = True
@@ -335,13 +353,11 @@ class Wordless(App):
                     self.home.event_button_state = EventButtonState.DELETE
 
         # button functions for the network tab
-        
+
         elif self.active_tab == ActiveTab.NETWORK:
-            
             if event.button.id == "network_event":
-                
                 state = self.network.event_button_state
-                
+
                 # checks if input box is empty or just whitespace
                 if self.network.conn_input.value.strip() == "":
                     self.network.status_label.display = True
@@ -351,7 +367,7 @@ class Wordless(App):
                 # the previous condition checks for an empty input box
                 # if it is passed, the input box contains text
                 # the content of this text is not validated, that is handled by individual methods
-                
+
                 if state == NetworkEventButtonState.HOST_FILE:
                     if self.network.conn_input.value not in list(self.files.keys()):
                         self.network.status_label.display = True
@@ -390,23 +406,24 @@ class Wordless(App):
                 elif state == NetworkEventButtonState.CLOSE:
                     self.host.close()
                     self.return_network_page()
-                
+
                 elif state == NetworkEventButtonState.JOIN:
                     if ":" not in self.network.conn_input.value:
                         self.network.status_label.display = True
                         self.network.status_label.update("Invalid format, needs a ':'")
                         return
                     try:
-                        input_host, input_port = self.network.conn_input.value.split(":")
+                        input_host, input_port = self.network.conn_input.value.split(
+                            ":"
+                        )
                         self.client = network.Client(input_host, int(input_port))
                         self.client_conn = self.client.run()
                         self.network.status_label.display = True
                         self.network.status_label.update("Connected to host")
-                    except Error as e:
+                    except:
                         self.network.status_label.display = True
                         self.network.status_label.update(
-                            # f"Could not connect to host on {input_host}:{input_port}"
-                            e.message
+                            f"Could not connect to host on {input_host}:{input_port}"
                         )
                         self.client.close()
                         return
