@@ -1,6 +1,6 @@
 from textual.app import App, ComposeResult, Widget
 from textual.binding import Binding
-from textual.worker import work
+from textual import work
 from textual.widgets import (
     Footer,
     Header,
@@ -93,6 +93,10 @@ class Network(Widget):
         self.markdown = Markdown()
         self.markdown.display = False
         yield self.markdown
+
+        self.disconnect_button = Button("Disconnect", id="network_disconnect")
+        self.disconnect_button.display = False
+        yield self.disconnect_button
 
         yield Horizontal(self.cancel_button, self.event_button)
 
@@ -246,6 +250,8 @@ class Wordless(App):
         self.network.status_label.display = False
         self.network.cancel_button.display = False
         self.network.event_button.display = False
+        self.network.disconnect_button.display = False
+        self.network.markdown.display = False
         self.network.event_button_state = NetworkEventButtonState.NONE
 
     @work(thread=True)
@@ -254,34 +260,26 @@ class Wordless(App):
             self.client = network.Client(input_host, input_port)
             self.client_conn = self.client.run()
             # update UI on successful connection
-            self.call_from_thread(
-                self.network.status_label.update, "Connected to host"
-            )
-            self.call_from_thread(
-                setattr, self.network.status_label, "display", True
-            )
-            self.call_from_thread(
-                setattr, self.network.conn_input, "display", False
-            )
-            self.call_from_thread(
-                setattr, self.network.markdown, "display", True
-            )
+            self.call_from_thread(self.network.status_label.update, "Connected to host")
+            self.call_from_thread(setattr, self.network.status_label, "display", True)
+            self.call_from_thread(setattr, self.network.conn_input, "display", False)
+            self.call_from_thread(setattr, self.network.cancel_button, "display", False)
+            self.call_from_thread(setattr, self.network.event_button, "display", False)
+            self.call_from_thread(setattr, self.network.markdown, "display", True)
+            self.call_from_thread(setattr, self.network.disconnect_button, "display", True)
             # receive data in background
             while True:
                 self.data = network.get_data(self.client_conn)
                 if self.data != "":
-                    self.call_from_thread(
-                        self.network.markdown.update, self.data
-                    )
+                    self.call_from_thread(self.network.markdown.update, self.data)
         except Exception:
             self.call_from_thread(
                 self.network.status_label.update,
                 f"Could not connect to host on {input_host}:{input_port}",
             )
-            self.call_from_thread(
-                setattr, self.network.status_label, "display", True
-            )
-            if self.client:
+            self.call_from_thread(setattr, self.network.status_label, "display", True)
+            self.call_from_thread(setattr, self.network.disconnect_button, "display", False)
+            if hasattr(self, "client") and self.client:
                 self.client.close()
 
     # called when a button is pressed
@@ -465,7 +463,14 @@ class Wordless(App):
                     input_host, input_port = self.network.conn_input.value.split(
                         ":"
                     )
-                    self._connect_client(input_host, int(input_port))
+                    self._client_worker = self._connect_client(input_host, int(input_port))
+
+            elif event.button.id == "network_disconnect":
+                if hasattr(self, "_client_worker"):
+                    self._client_worker.cancel()
+                if hasattr(self, "client") and self.client:
+                    self.client.close()
+                self.return_network_page()
 
             elif event.button.id == "network_cancel":
                 self.return_network_page()
