@@ -90,15 +90,15 @@ class Network(Widget):
         self.event_button = Button(id="network_event")
         self.event_button.display = False
 
-        self.markdown = Markdown()
-        self.markdown.display = False
-        yield self.markdown
-
         self.disconnect_button = Button("Disconnect", id="network_disconnect")
         self.disconnect_button.display = False
         yield self.disconnect_button
 
         yield Horizontal(self.cancel_button, self.event_button)
+
+        self.markdown = Markdown()
+        self.markdown.display = False
+        yield self.markdown
 
 
 class EventButtonState(Enum):
@@ -147,19 +147,10 @@ class Wordless(App):
     # path to the CSS file
     CSS_PATH = "styles.tcss"
 
-    # bindings that are visible in the footer
-    # each has a keybaord shortcut that maps to a method
-    BINDINGS = [
-        Binding("ctrl+1", "italicize", "italicize"),
-        Binding("ctrl+2", "highlight", "highlight"),
-        Binding("ctrl+3", "condense", "condense"),
-    ]
-
     # creates the layout of the app
     def compose(self) -> ComposeResult:
         # the top of the page with the title
         yield Header()
-        yield Footer()
 
         # creates a new tab for the home page and network page
         self.tabs = Tabs(Tab("--HOME--", id="home"), Tab("--NETWORK--", id="network"))
@@ -266,7 +257,9 @@ class Wordless(App):
             self.call_from_thread(setattr, self.network.cancel_button, "display", False)
             self.call_from_thread(setattr, self.network.event_button, "display", False)
             self.call_from_thread(setattr, self.network.markdown, "display", True)
-            self.call_from_thread(setattr, self.network.disconnect_button, "display", True)
+            self.call_from_thread(
+                setattr, self.network.disconnect_button, "display", True
+            )
             # receive data in background
             while True:
                 self.data = network.get_data(self.client_conn)
@@ -278,7 +271,9 @@ class Wordless(App):
                 f"Could not connect to host on {input_host}:{input_port}",
             )
             self.call_from_thread(setattr, self.network.status_label, "display", True)
-            self.call_from_thread(setattr, self.network.disconnect_button, "display", False)
+            self.call_from_thread(
+                setattr, self.network.disconnect_button, "display", False
+            )
             if hasattr(self, "client") and self.client:
                 self.client.close()
 
@@ -434,7 +429,9 @@ class Wordless(App):
                         self.host_conn = self.host.run()
                         # change UI state
                         # changes buttons so that user can close connection
-                        self.network.event_button_state = NetworkEventButtonState.CLOSE_HOST
+                        self.network.event_button_state = (
+                            NetworkEventButtonState.CLOSE_HOST
+                        )
                         self.network.conn_input.display = False
                         self.network.cancel_button.display = False
                         self.network.event_button.label = "Close Connection"
@@ -460,10 +457,10 @@ class Wordless(App):
                         self.network.status_label.display = True
                         self.network.status_label.update("Invalid format, needs a ':'")
                         return
-                    input_host, input_port = self.network.conn_input.value.split(
-                        ":"
+                    input_host, input_port = self.network.conn_input.value.split(":")
+                    self._client_worker = self._connect_client(
+                        input_host, int(input_port)
                     )
-                    self._client_worker = self._connect_client(input_host, int(input_port))
 
             elif event.button.id == "network_disconnect":
                 if hasattr(self, "_client_worker"):
@@ -492,22 +489,6 @@ class Wordless(App):
                     self.network.event_button_state = NetworkEventButtonState.JOIN
 
         self.set_focus(None)
-
-    # mapped to a binding
-    def action_italicize(self) -> None:
-        pass
-
-    # mapped to a binding
-    def action_highlight(self) -> None:
-        pass
-
-    # mapped to a binding
-    # condenses several paragraphs into one
-    def action_condense(self) -> None:
-        # FIX: bug -> when nothing is selected, it duplicates all text
-        start = self.textarea.selection.start
-        end = self.textarea.selection.end
-        self.textarea.replace(self.textarea.text.replace("\n", " "), start, end)
 
 
 # runs the app
