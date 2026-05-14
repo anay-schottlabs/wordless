@@ -258,20 +258,30 @@ class Wordless(App):
 
     @work(thread=True)
     def _connect_client(self, input_host: str, input_port: int) -> None:
+        # --- connection phase ---
         try:
             self.client = network.Client(input_host, input_port)
             self.client_conn = self.client.run()
-            # update UI on successful connection
-            self.call_from_thread(self.network.status_label.update, "Connected to host")
-            self.call_from_thread(setattr, self.network.status_label, "display", True)
-            self.call_from_thread(setattr, self.network.conn_input, "display", False)
-            self.call_from_thread(setattr, self.network.cancel_button, "display", False)
-            self.call_from_thread(setattr, self.network.event_button, "display", False)
-            self.call_from_thread(setattr, self.network.markdown, "display", True)
-            self.call_from_thread(
-                setattr, self.network.disconnect_button, "display", True
-            )
-            # receive data in background
+        except Exception:
+            if not self._disconnecting:
+                self.call_from_thread(
+                    self.network.status_label.update,
+                    f"Could not connect to host on {input_host}:{input_port}",
+                )
+                self.call_from_thread(setattr, self.network.status_label, "display", True)
+            return
+
+        # update UI on successful connection
+        self.call_from_thread(self.network.status_label.update, "Connected to host")
+        self.call_from_thread(setattr, self.network.status_label, "display", True)
+        self.call_from_thread(setattr, self.network.conn_input, "display", False)
+        self.call_from_thread(setattr, self.network.cancel_button, "display", False)
+        self.call_from_thread(setattr, self.network.event_button, "display", False)
+        self.call_from_thread(setattr, self.network.markdown, "display", True)
+        self.call_from_thread(setattr, self.network.disconnect_button, "display", True)
+
+        # --- receive phase ---
+        try:
             while True:
                 self.data = network.get_data(self.client_conn)
                 if self.data == "":
@@ -283,15 +293,12 @@ class Wordless(App):
                     break
                 self.call_from_thread(self.network.markdown.update, self.data)
         except Exception:
+            # any socket error during receive means the host dropped the connection
             if not self._disconnecting:
                 self.call_from_thread(
-                    self.network.status_label.update,
-                    f"Could not connect to host on {input_host}:{input_port}",
+                    self._on_conn_closed, "Connection closed by host"
                 )
-                self.call_from_thread(setattr, self.network.status_label, "display", True)
-                self.call_from_thread(
-                    setattr, self.network.disconnect_button, "display", False
-                )
+        finally:
             if hasattr(self, "client") and self.client:
                 self.client.close()
 
@@ -487,6 +494,7 @@ class Wordless(App):
 
                 elif state == NetworkEventButtonState.CLOSE_HOST:
                     self._disconnecting = True
+                    self.host_conn.close()
                     self.host.close()
                     self.return_network_page()
 
