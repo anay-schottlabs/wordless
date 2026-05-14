@@ -2,8 +2,6 @@
    WORDLESS  —  RETRO PURPLE / HACKER THEME
    ============================================= */
 
-/* NOTE: Styling written by AI */
-
 /* ---- Root ---- */
 Screen {
     background: #050010;
@@ -72,10 +70,14 @@ Tab.-active:hover {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 /* ---- Buttons (base — filled primary) ---- */
 =======
 /* ---- Buttons  (filled, primary) ---- */
 >>>>>>> 2a0b431 (Apply a retro purple and hacker-themed UI overhaul to the application)
+=======
+/* ---- Buttons (base — filled primary) ---- */
+>>>>>>> 0e6747a (Apply updated styles to the network page for improved layout and appearance)
 Button {
     background: #6d28d9;
     color: #f5f3ff;
@@ -114,10 +116,14 @@ Button:focus {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 /* Cancel — secondary / muted */
 =======
 /* Cancel buttons — secondary / muted */
 >>>>>>> 2a0b431 (Apply a retro purple and hacker-themed UI overhaul to the application)
+=======
+/* Cancel — secondary / muted */
+>>>>>>> 0e6747a (Apply updated styles to the network page for improved layout and appearance)
 #cancel, #network_cancel {
     background: #1a0035;
     color: #8b5cf6;
@@ -134,11 +140,17 @@ Button:focus {
     background: #44026f;
     color: #fde68a;
 <<<<<<< HEAD
+<<<<<<< HEAD
     margin: 1 3;
     height: 5;
     padding: 1 4;
 =======
 >>>>>>> 2a0b431 (Apply a retro purple and hacker-themed UI overhaul to the application)
+=======
+    margin: 1 3;
+    height: 5;
+    padding: 1 4;
+>>>>>>> 0e6747a (Apply updated styles to the network page for improved layout and appearance)
 }
 
 #network_disconnect:hover {
@@ -151,11 +163,17 @@ Button:focus {
     background: #2d1b69;
     color: #c084fc;
 <<<<<<< HEAD
+<<<<<<< HEAD
     margin: 1 3;
     height: 5;
     padding: 1 4;
 =======
 >>>>>>> 2a0b431 (Apply a retro purple and hacker-themed UI overhaul to the application)
+=======
+    margin: 1 3;
+    height: 5;
+    padding: 1 4;
+>>>>>>> 0e6747a (Apply updated styles to the network page for improved layout and appearance)
 }
 
 #network_done:hover {
@@ -411,7 +429,6 @@ Home {
     overflow-y: auto;
 }
 
-/* ASCII art banner */
 #ascii-art {
     color: #c084fc;
     text-align: center;
@@ -420,7 +437,6 @@ Home {
     width: 100%;
 }
 
-/* Subtitle line */
 #subtitle {
     color: #4c1d95;
     text-align: center;
@@ -428,7 +444,6 @@ Home {
     width: 100%;
 }
 
-/* Section divider labels */
 .section-label {
     color: #3b0764;
     padding: 1 3 0 3;
@@ -436,7 +451,6 @@ Home {
     width: 100%;
 }
 
-/* ---- IO button row ---- */
 #io-buttons {
     width: 100%;
     padding: 1 3;
@@ -451,7 +465,6 @@ Home {
     margin-right: 2;
 }
 
-/* ---- File management button row ---- */
 #mgmt-buttons {
     width: 100%;
     padding: 1 3;
@@ -466,7 +479,6 @@ Home {
     margin-right: 2;
 }
 
-/* Action row (cancel + event) */
 #action-buttons {
     padding: 1 3;
     height: auto;
@@ -478,7 +490,6 @@ Home {
     min-width: 16;
 }
 
-/* Status / files label inside home */
 Home Label {
     padding: 1 3;
 }
@@ -493,7 +504,130 @@ Home Input {
 
 Network {
     background: #050010;
-    padding: 2 3;
+    overflow-y: auto;
+}
+
+/* Banner diagram */
+#network-banner {
+    color: #7c3aed;
+    text-align: center;
+    padding: 1 2 0 2;
+    text-style: bold;
+    width: 100%;
+}
+
+#network-tagline {
+    color: #3b0764;
+    text-align: center;
+    padding: 0 2 1 2;
+    width: 100%;
+}
+
+/* Host / Join card row */
+#mode-row {
+    width: 100%;
+    padding: 1 3;
+    height: auto;
+}
+
+/* Individual cards */
+#host-card {
+    width: 1fr;
+    border: solid #2d1b69;
+    padding: 1 2;
+    margin: 0 2 0 0;
+    background: #0a0018;
+    height: auto;
+}
+
+#join-card {
+    width: 1fr;
+    border: solid #2d1b69;
+    padding: 1 2;
+    margin: 0 0 0 2;
+    background: #0a0018;
+    height: auto;
+}
+
+#host-card:hover {
+    border: solid #6d28d9;
+}
+
+#join-card:hover {
+    border: solid #6d28d9;
+}
+
+/* Card text */
+.mode-label {
+    color: #c084fc;
+    text-style: bold;
+    text-align: center;
+    width: 100%;
+    padding: 0 0 1 0;
+}
+
+.mode-desc {
+    color: #4c1d95;
+    text-align: center;
+    width: 100%;
+    padding: 0 0 1 0;
+}
+
+/* Buttons inside cards stretch full width */
+#host-card Button {
+    width: 100%;
+    height: 5;
+    min-width: 1;
+    margin-right: 0;
+    padding: 1 2;
+}
+
+#join-card Button {
+    width: 100%;
+    height: 5;
+    min-width: 1;
+    margin-right: 0;
+    padding: 1 2;
+}
+
+/* Network input / labels */
+Network Input {
+    margin: 1 3;
+}
+
+Network Label {
+    padding: 1 3;
+    color: #a855f7;
+}
+
+/* Network action buttons row */
+#network-action-buttons {
+    padding: 1 3;
+    height: auto;
+}
+
+#network-action-buttons Button {
+    height: 5;
+    padding: 1 4;
+    min-width: 16;
+}
+
+/* Received content label */
+#received-header {
+    color: #3b0764;
+    padding: 1 3 0 3;
+    text-style: bold;
+    width: 100%;
+}
+
+/* Markdown pane in network (received file view) */
+Network Markdown {
+    height: 15;
+    margin: 0 3 1 3;
+    padding: 0 1;
+    border: solid #2d1b69;
+    background: #030008;
+    color: #d8b4fe;
 }
 
 <<<<<<< HEAD
@@ -514,6 +648,7 @@ TextArea {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     width: 1fr;
 =======
     width: 1.5fr;
@@ -524,6 +659,9 @@ TextArea {
 =======
     width: 1.2fr;
 >>>>>>> 0f844ab (Improve the network page with a new layout and design elements)
+=======
+    width: 1fr;
+>>>>>>> 0e6747a (Apply updated styles to the network page for improved layout and appearance)
     background: #030008;
     color: #e9d5ff;
     border: double #2d1b69;
@@ -533,6 +671,7 @@ TextArea:focus {
     border: double #7c3aed;
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 Markdown {
@@ -554,6 +693,11 @@ Markdown {
 =======
     width: 1fr;
 >>>>>>> 0f844ab (Improve the network page with a new layout and design elements)
+=======
+Markdown {
+    height: 100%;
+    width: 1.4fr;
+>>>>>>> 0e6747a (Apply updated styles to the network page for improved layout and appearance)
     background: #030008;
     color: #d8b4fe;
     border: solid #2d1b69;
@@ -561,9 +705,12 @@ Markdown {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 /* ---- Markdown headings ---- */
 >>>>>>> 2a0b431 (Apply a retro purple and hacker-themed UI overhaul to the application)
+=======
+>>>>>>> 0e6747a (Apply updated styles to the network page for improved layout and appearance)
 MarkdownH1 {
     color: #c084fc;
     text-style: bold;
