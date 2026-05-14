@@ -237,7 +237,6 @@ class Wordless(App):
         self.home.reset_buttons()
 
     def return_network_page(self) -> None:
-        self._disconnecting = False
         self.network.host_button.display = True
         self.network.join_button.display = True
         self.network.conn_input.display = False
@@ -260,6 +259,7 @@ class Wordless(App):
     @work(thread=True)
     def _connect_client(self, input_host: str, input_port: int) -> None:
         # --- connection phase ---
+        self._disconnecting = False
         try:
             self.client = network.Client(input_host, input_port)
             self.client_conn = self.client.run()
@@ -462,6 +462,7 @@ class Wordless(App):
 
                 elif state == NetworkEventButtonState.HOST_CONN:
                     # check if port number is an int
+                    self._disconnecting = False
                     try:
                         # host file
                         port = int(self.network.conn_input.value)
