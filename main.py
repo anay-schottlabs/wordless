@@ -377,9 +377,35 @@ class Wordless(App):
                         )
                         success = True
                 elif state == EventButtonState.SELECT_RENAME:
-                    pass
+                    if self.home.text_input.value not in list(self.files.keys()):
+                        self.home.status_label.display = True
+                        self.home.status_label.update("File with this name doesn't exist")
+                        return
+                    self.rename_from = self.home.text_input.value
+                    self.home.text_input.value = ""
+                    self.home.text_input.placeholder = "New file name"
+                    self.home.event_button.label = "Rename"
+                    self.home.event_button_state = EventButtonState.RENAME
+                    self.home.status_label.display = False
                 elif state == EventButtonState.RENAME:
-                    pass
+                    new_name = self.home.text_input.value
+                    if new_name in list(self.files.keys()):
+                        self.home.status_label.display = True
+                        self.home.status_label.update("File with this name already exists")
+                        return
+                    if (
+                        re.search(r"[^A-Za-z0-9 ]", new_name)
+                        or new_name == "home"
+                        or new_name == "network"
+                    ):
+                        self.home.status_label.display = True
+                        self.home.status_label.update("Invalid file name")
+                        return
+                    self.files[new_name] = self.files.pop(self.rename_from)
+                    file_manager.save_files(self.files)
+                    self.tabs.remove_tab(self.rename_from.replace(" ", "-"))
+                    self.tabs.add_tab(Tab(new_name, id=new_name.replace(" ", "-")))
+                    success = True
                 elif state == EventButtonState.DELETE:
                     # if the file doesn't exist
                     if self.home.text_input.value not in list(self.files.keys()):
@@ -428,6 +454,7 @@ class Wordless(App):
                 elif event.button.id == "rename":
                     self.home.text_input.placeholder = "Name of file to rename"
                     self.home.event_button.label = "Select"
+                    self.home.event_button_state = EventButtonState.SELECT_RENAME
                 elif event.button.id == "delete":
                     self.home.text_input.placeholder = "Name of file to delete"
                     self.home.event_button.label = "Delete"
