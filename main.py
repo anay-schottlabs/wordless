@@ -11,15 +11,7 @@ from textual.widgets import (
     Tab,
     Static,
 )
-<<<<<<< HEAD
-<<<<<<< HEAD
 from textual.containers import Horizontal, Vertical, VerticalScroll
-=======
-from textual.containers import Horizontal, VerticalScroll
->>>>>>> fe080f5 (Add a visually striking home screen with ASCII art and grouped buttons)
-=======
-from textual.containers import Horizontal, Vertical, VerticalScroll
->>>>>>> 0f844ab (Improve the network page with a new layout and design elements)
 import socket
 import file_manager
 import network
@@ -27,15 +19,7 @@ from enum import Enum, auto
 import re
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 ASCII_ART = """
-=======
-ASCII_ART = """\
->>>>>>> fe080f5 (Add a visually striking home screen with ASCII art and grouped buttons)
-=======
-ASCII_ART = """
->>>>>>> 0f844ab (Improve the network page with a new layout and design elements)
  ██╗    ██╗ ██████╗ ██████╗ ██████╗ ██╗     ███████╗███████╗███████╗
  ██║    ██║██╔═══██╗██╔══██╗██╔══██╗██║     ██╔════╝██╔════╝██╔════╝
  ██║ █╗ ██║██║   ██║██████╔╝██║  ██║██║     █████╗  ███████╗███████╗
@@ -117,15 +101,6 @@ class Home(Widget):
         self.event_button.display = False
 
         yield Horizontal(self.cancel_button, self.event_button, id="action-buttons")
-<<<<<<< HEAD
-
-
-NETWORK_BANNER = """\
-   ┌──────────┐                                          ┌──────────┐
-   │   HOST   │ ════════════════════════════════════════ │   JOIN   │
-   └──────────┘         WORDLESS  //  NETWORK            └──────────┘"""
-=======
->>>>>>> fe080f5 (Add a visually striking home screen with ASCII art and grouped buttons)
 
 
 NETWORK_BANNER = """\
