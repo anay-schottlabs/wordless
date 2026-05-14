@@ -252,6 +252,7 @@ class Wordless(App):
     def _on_conn_closed(self, message: str) -> None:
         self.network.status_label.update(message)
         self.network.status_label.display = True
+        self.network.event_button.display = False
         self.network.disconnect_button.display = False
         self.network.done_button.display = True
 
