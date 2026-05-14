@@ -11,7 +11,11 @@ from textual.widgets import (
     Tab,
     Static,
 )
+<<<<<<< HEAD
 from textual.containers import Horizontal, Vertical, VerticalScroll
+=======
+from textual.containers import Horizontal, VerticalScroll
+>>>>>>> fe080f5 (Add a visually striking home screen with ASCII art and grouped buttons)
 import socket
 import file_manager
 import network
@@ -19,7 +23,11 @@ from enum import Enum, auto
 import re
 
 
+<<<<<<< HEAD
 ASCII_ART = """
+=======
+ASCII_ART = """\
+>>>>>>> fe080f5 (Add a visually striking home screen with ASCII art and grouped buttons)
  ██╗    ██╗ ██████╗ ██████╗ ██████╗ ██╗     ███████╗███████╗███████╗
  ██║    ██║██╔═══██╗██╔══██╗██╔══██╗██║     ██╔════╝██╔════╝██╔════╝
  ██║ █╗ ██║██║   ██║██████╔╝██║  ██║██║     █████╗  ███████╗███████╗
@@ -101,12 +109,15 @@ class Home(Widget):
         self.event_button.display = False
 
         yield Horizontal(self.cancel_button, self.event_button, id="action-buttons")
+<<<<<<< HEAD
 
 
 NETWORK_BANNER = """\
    ┌──────────┐                                          ┌──────────┐
    │   HOST   │ ════════════════════════════════════════ │   JOIN   │
    └──────────┘         WORDLESS  //  NETWORK            └──────────┘"""
+=======
+>>>>>>> fe080f5 (Add a visually striking home screen with ASCII art and grouped buttons)
 
 
 class Network(Widget):
