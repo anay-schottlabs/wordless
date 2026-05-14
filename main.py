@@ -2,8 +2,6 @@ from textual.app import App, ComposeResult, Widget
 from textual.binding import Binding
 from textual import work
 from textual.widgets import (
-    Footer,
-    Header,
     TextArea,
     Markdown,
     Tabs,
@@ -95,6 +93,10 @@ class Network(Widget):
         self.disconnect_button.display = False
         yield self.disconnect_button
 
+        self.done_button = Button("Done", id="network_done")
+        self.done_button.display = False
+        yield self.done_button
+
         yield Horizontal(self.cancel_button, self.event_button)
 
         self.markdown = Markdown()
@@ -151,8 +153,6 @@ class Wordless(App):
 
     # creates the layout of the app
     def compose(self) -> ComposeResult:
-        # the top of the page with the title
-        yield Header()
 
         # creates a new tab for the home page and network page
         self.tabs = Tabs(Tab("--HOME--", id="home"), Tab("--NETWORK--", id="network"))
@@ -245,6 +245,7 @@ class Wordless(App):
         self.network.cancel_button.display = False
         self.network.event_button.display = False
         self.network.disconnect_button.display = False
+        self.network.done_button.display = False
         self.network.markdown.display = False
         self.network.event_button_state = NetworkEventButtonState.NONE
 
@@ -252,9 +253,7 @@ class Wordless(App):
         self.network.status_label.update(message)
         self.network.status_label.display = True
         self.network.disconnect_button.display = False
-        self.network.event_button.label = "Done"
-        self.network.event_button.display = True
-        self.network.event_button_state = NetworkEventButtonState.CONN_CLOSED
+        self.network.done_button.display = True
 
     @work(thread=True)
     def _connect_client(self, input_host: str, input_port: int) -> None:
@@ -504,9 +503,6 @@ class Wordless(App):
                     self.host.close()
                     self.return_network_page()
 
-                elif state == NetworkEventButtonState.CONN_CLOSED:
-                    self.return_network_page()
-
                 elif state == NetworkEventButtonState.JOIN:
                     if ":" not in self.network.conn_input.value:
                         self.network.status_label.display = True
@@ -523,6 +519,9 @@ class Wordless(App):
                     self._client_worker.cancel()
                 if hasattr(self, "client") and self.client:
                     self.client.close()
+                self.return_network_page()
+
+            elif event.button.id == "network_done":
                 self.return_network_page()
 
             elif event.button.id == "network_cancel":
