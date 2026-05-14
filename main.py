@@ -13,6 +13,7 @@ from textual.widgets import (
     Tab,
 )
 from textual.containers import Horizontal
+import socket
 import file_manager
 import network
 from enum import Enum, auto
@@ -494,6 +495,10 @@ class Wordless(App):
 
                 elif state == NetworkEventButtonState.CLOSE_HOST:
                     self._disconnecting = True
+                    try:
+                        self.host_conn.shutdown(socket.SHUT_RDWR)
+                    except OSError:
+                        pass
                     self.host_conn.close()
                     self.host.close()
                     self.return_network_page()

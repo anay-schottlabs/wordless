@@ -33,6 +33,10 @@ class Client:
         return self.s
 
     def close(self) -> None:
+        try:
+            self.s.shutdown(socket.SHUT_RDWR)
+        except OSError:
+            pass
         self.s.close()
         print("CLIENT: Closed connection")
 
