@@ -116,6 +116,7 @@ class NetworkEventButtonState(Enum):
     HOST_CONN = auto()
     CLOSE_HOST = auto()
     JOIN = auto()
+    CONN_CLOSED = auto()
 
 
 class ActiveTab(Enum):
@@ -173,6 +174,7 @@ class Wordless(App):
 
     # called when the app is created
     def on_mount(self) -> None:
+        self._disconnecting = False
         self.files = file_manager.load_files()
         # goes through every file
         # creates tabs, naming them the filename
@@ -234,6 +236,7 @@ class Wordless(App):
         self.home.reset_buttons()
 
     def return_network_page(self) -> None:
+        self._disconnecting = False
         self.network.host_button.display = True
         self.network.join_button.display = True
         self.network.conn_input.display = False
@@ -244,6 +247,14 @@ class Wordless(App):
         self.network.disconnect_button.display = False
         self.network.markdown.display = False
         self.network.event_button_state = NetworkEventButtonState.NONE
+
+    def _on_conn_closed(self, message: str) -> None:
+        self.network.status_label.update(message)
+        self.network.status_label.display = True
+        self.network.disconnect_button.display = False
+        self.network.event_button.label = "Done"
+        self.network.event_button.display = True
+        self.network.event_button_state = NetworkEventButtonState.CONN_CLOSED
 
     @work(thread=True)
     def _connect_client(self, input_host: str, input_port: int) -> None:
@@ -263,19 +274,44 @@ class Wordless(App):
             # receive data in background
             while True:
                 self.data = network.get_data(self.client_conn)
-                if self.data != "":
-                    self.call_from_thread(self.network.markdown.update, self.data)
+                if self.data == "":
+                    # empty recv means the host closed the connection
+                    if not self._disconnecting:
+                        self.call_from_thread(
+                            self._on_conn_closed, "Connection closed by host"
+                        )
+                    break
+                self.call_from_thread(self.network.markdown.update, self.data)
         except Exception:
-            self.call_from_thread(
-                self.network.status_label.update,
-                f"Could not connect to host on {input_host}:{input_port}",
-            )
-            self.call_from_thread(setattr, self.network.status_label, "display", True)
-            self.call_from_thread(
-                setattr, self.network.disconnect_button, "display", False
-            )
+            if not self._disconnecting:
+                self.call_from_thread(
+                    self.network.status_label.update,
+                    f"Could not connect to host on {input_host}:{input_port}",
+                )
+                self.call_from_thread(setattr, self.network.status_label, "display", True)
+                self.call_from_thread(
+                    setattr, self.network.disconnect_button, "display", False
+                )
             if hasattr(self, "client") and self.client:
                 self.client.close()
+
+    @work(thread=True)
+    def _monitor_host_conn(self) -> None:
+        try:
+            while True:
+                data = network.get_data(self.host_conn)
+                if data == "":
+                    # empty recv means the client closed the connection
+                    if not self._disconnecting:
+                        self.call_from_thread(
+                            self._on_conn_closed, "Connection closed by client"
+                        )
+                    break
+        except Exception:
+            if not self._disconnecting:
+                self.call_from_thread(
+                    self._on_conn_closed, "Connection closed by client"
+                )
 
     # called when a button is pressed
     def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -437,6 +473,8 @@ class Wordless(App):
                         self.network.event_button.label = "Close Connection"
                         # send data
                         network.send_data(self.host_conn, self.files[self.host_file])
+                        # monitor connection for client disconnect
+                        self._monitor_host_conn()
                     except ValueError:
                         self.network.status_label.display = True
                         self.network.status_label.update("Port must be a number")
@@ -448,9 +486,12 @@ class Wordless(App):
                             self.network.status_label.update("Port already in use")
 
                 elif state == NetworkEventButtonState.CLOSE_HOST:
+                    self._disconnecting = True
                     self.host.close()
                     self.return_network_page()
-                    self.network.event_button_state == NetworkEventButtonState.NONE
+
+                elif state == NetworkEventButtonState.CONN_CLOSED:
+                    self.return_network_page()
 
                 elif state == NetworkEventButtonState.JOIN:
                     if ":" not in self.network.conn_input.value:
@@ -463,6 +504,7 @@ class Wordless(App):
                     )
 
             elif event.button.id == "network_disconnect":
+                self._disconnecting = True
                 if hasattr(self, "_client_worker"):
                     self._client_worker.cancel()
                 if hasattr(self, "client") and self.client:
