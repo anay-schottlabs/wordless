@@ -1,15 +1,429 @@
+/* =============================================
+   WORDLESS  —  RETRO PURPLE / HACKER THEME
+   ============================================= */
+
+/* ---- Root ---- */
+Screen {
+    background: #050010;
+    color: #e9d5ff;
+}
+
+/* ---- Header ---- */
+Header {
+    background: #0d0020;
+    color: #c084fc;
+    text-style: bold;
+    border-bottom: solid #3b0764;
+}
+
+HeaderTitle {
+    color: #c084fc;
+    text-style: bold;
+}
+
+HeaderIcon {
+    color: #7c3aed;
+}
+
+/* ---- Footer ---- */
+Footer {
+    background: #0d0020;
+    color: #7c3aed;
+    border-top: solid #2d1b69;
+}
+
+FooterKey {
+    color: #a855f7;
+    background: #1a0035;
+}
+
+FooterKey .footer-key--key {
+    color: #c084fc;
+    background: #3b0764;
+}
+
+/* ---- Tab Bar ---- */
+Tabs {
+    background: #0a0018;
+    border-bottom: solid #2d1b69;
+}
+
+Tab {
+    background: #0a0018;
+    color: #6d28d9;
+    padding: 0 2;
+}
+
+Tab:hover {
+    background: #1a0035;
+    color: #c084fc;
+}
+
+Tab.-active {
+    background: #3b0764;
+    color: #e9d5ff;
+    text-style: bold;
+}
+
+Tab.-active:hover {
+    background: #4c0a7e;
+}
+
+/* ---- Buttons (base — filled primary) ---- */
+Button {
+    background: #6d28d9;
+    color: #f5f3ff;
+    border: none;
+    padding: 1 4;
+    min-width: 16;
+    text-style: bold;
+    margin-right: 1;
+    height: auto;
+}
+
+Button:hover {
+    background: #7c3aed;
+    color: #ffffff;
+}
+
+Button:focus {
+    background: #7c3aed;
+    border: tall #c084fc;
+    color: #ffffff;
+}
+
+/* Cancel — secondary / muted */
+#cancel, #network_cancel {
+    background: #1a0035;
+    color: #8b5cf6;
+    border: none;
+}
+
+#cancel:hover, #network_cancel:hover {
+    background: #2d1b69;
+    color: #e9d5ff;
+}
+
+/* Disconnect — warning amber */
+#network_disconnect {
+    background: #44026f;
+    color: #fde68a;
+    margin: 1 3;
+    height: 5;
+    padding: 1 4;
+}
+
+#network_disconnect:hover {
+    background: #5b21b6;
+    color: #fef9c3;
+}
+
+/* Done — calm finish */
+#network_done {
+    background: #2d1b69;
+    color: #c084fc;
+    margin: 1 3;
+    height: 5;
+    padding: 1 4;
+}
+
+#network_done:hover {
+    background: #3b0764;
+    color: #e9d5ff;
+}
+
+/* ---- Input Fields ---- */
+Input {
+    background: #0a0018;
+    color: #e9d5ff;
+    border: solid #2d1b69;
+    padding: 0 1;
+}
+
+Input:focus {
+    background: #0d0020;
+    border: solid #7c3aed;
+    color: #f5f3ff;
+}
+
+/* ---- Labels ---- */
+Label {
+    color: #a78bca;
+    padding: 0 1;
+}
+
+/* =============================================
+   HOME SCREEN
+   ============================================= */
+
+Home {
+    background: #050010;
+    overflow-y: auto;
+}
+
+#ascii-art {
+    color: #c084fc;
+    text-align: center;
+    padding: 1 2;
+    text-style: bold;
+    width: 100%;
+}
+
+#subtitle {
+    color: #4c1d95;
+    text-align: center;
+    padding: 0 2 2 2;
+    width: 100%;
+}
+
+.section-label {
+    color: #3b0764;
+    padding: 1 3 0 3;
+    text-style: bold;
+    width: 100%;
+}
+
+#io-buttons {
+    width: 100%;
+    padding: 1 3;
+    height: auto;
+}
+
+#io-buttons Button {
+    width: 1fr;
+    height: 7;
+    padding: 2 4;
+    min-width: 1;
+    margin-right: 2;
+}
+
+#mgmt-buttons {
+    width: 100%;
+    padding: 1 3;
+    height: auto;
+}
+
+#mgmt-buttons Button {
+    width: 1fr;
+    height: 7;
+    padding: 2 2;
+    min-width: 1;
+    margin-right: 2;
+}
+
+#action-buttons {
+    padding: 1 3;
+    height: auto;
+}
+
+#action-buttons Button {
+    height: 5;
+    padding: 1 4;
+    min-width: 16;
+}
+
+Home Label {
+    padding: 1 3;
+}
+
+Home Input {
+    margin: 0 3;
+}
+
+/* =============================================
+   NETWORK SCREEN
+   ============================================= */
+
+Network {
+    background: #050010;
+    overflow-y: auto;
+}
+
+/* Banner diagram */
+#network-banner {
+    color: #7c3aed;
+    text-align: center;
+    padding: 1 2 0 2;
+    text-style: bold;
+    width: 100%;
+}
+
+#network-tagline {
+    color: #3b0764;
+    text-align: center;
+    padding: 0 2 1 2;
+    width: 100%;
+}
+
+/* Host / Join card row */
+#mode-row {
+    width: 100%;
+    padding: 1 3;
+    height: auto;
+}
+
+/* Individual cards */
+#host-card {
+    width: 1fr;
+    border: solid #2d1b69;
+    padding: 1 2;
+    margin: 0 2 0 0;
+    background: #0a0018;
+    height: auto;
+}
+
+#join-card {
+    width: 1fr;
+    border: solid #2d1b69;
+    padding: 1 2;
+    margin: 0 0 0 2;
+    background: #0a0018;
+    height: auto;
+}
+
+#host-card:hover {
+    border: solid #6d28d9;
+}
+
+#join-card:hover {
+    border: solid #6d28d9;
+}
+
+/* Card text */
+.mode-label {
+    color: #c084fc;
+    text-style: bold;
+    text-align: center;
+    width: 100%;
+    padding: 0 0 1 0;
+}
+
+.mode-desc {
+    color: #4c1d95;
+    text-align: center;
+    width: 100%;
+    padding: 0 0 1 0;
+}
+
+/* Buttons inside cards stretch full width */
+#host-card Button {
+    width: 100%;
+    height: 5;
+    min-width: 1;
+    margin-right: 0;
+    padding: 1 2;
+}
+
+#join-card Button {
+    width: 100%;
+    height: 5;
+    min-width: 1;
+    margin-right: 0;
+    padding: 1 2;
+}
+
+/* Network input / labels */
+Network Input {
+    margin: 1 3;
+}
+
+Network Label {
+    padding: 1 3;
+    color: #a855f7;
+}
+
+/* Network action buttons row */
+#network-action-buttons {
+    padding: 1 3;
+    height: auto;
+}
+
+#network-action-buttons Button {
+    height: 5;
+    padding: 1 4;
+    min-width: 16;
+}
+
+/* Received content label */
+#received-header {
+    color: #3b0764;
+    padding: 1 3 0 3;
+    text-style: bold;
+    width: 100%;
+}
+
+/* Markdown pane in network (received file view) */
+Network Markdown {
+    height: 15;
+    margin: 0 3 1 3;
+    padding: 0 1;
+    border: solid #2d1b69;
+    background: #030008;
+    color: #d8b4fe;
+}
+
+/* =============================================
+   TEXT EDITOR
+   ============================================= */
+
+Editor {
+    height: 95%;
+}
+
 TextArea {
     height: 100%;
-    width: 1.5fr;
-    border: solid blue;
+    width: 1fr;
+    background: #030008;
+    color: #e9d5ff;
+    border: double #2d1b69;
+}
+
+TextArea:focus {
+    border: double #7c3aed;
 }
 
 Markdown {
     height: 100%;
-    width: 1fr;
-    border: solid red;
+    width: 1.4fr;
+    background: #030008;
+    color: #d8b4fe;
+    border: solid #2d1b69;
+    padding: 0 1;
 }
 
-Editor {
-    height: 95%;
+MarkdownH1 {
+    color: #c084fc;
+    text-style: bold;
+    border-bottom: solid #3b0764;
+    padding-bottom: 1;
+}
+
+MarkdownH2 {
+    color: #a855f7;
+    text-style: bold;
+}
+
+MarkdownH3 {
+    color: #8b5cf6;
+    text-style: bold;
+}
+
+MarkdownFence {
+    background: #0d0020;
+    color: #d8b4fe;
+    border: solid #2d1b69;
+}
+
+/* ---- Scrollbars ---- */
+ScrollBar {
+    background: #0a0018;
+    color: #2d1b69;
+}
+
+ScrollBarSlider {
+    background: #3b0764;
+}
+
+ScrollBarSlider:hover {
+    background: #6d28d9;
 }
