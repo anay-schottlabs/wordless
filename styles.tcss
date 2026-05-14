@@ -2,6 +2,8 @@
    WORDLESS  —  RETRO PURPLE / HACKER THEME
    ============================================= */
 
+/* I had the UI done through AI */
+
 /* ---- Root ---- */
 Screen {
     background: #050010;
@@ -511,6 +513,7 @@ TextArea {
     height: 100%;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     width: 1fr;
 =======
     width: 1.5fr;
@@ -518,6 +521,9 @@ TextArea {
 =======
     width: 1fr;
 >>>>>>> fe080f5 (Add a visually striking home screen with ASCII art and grouped buttons)
+=======
+    width: 1.2fr;
+>>>>>>> 0f844ab (Improve the network page with a new layout and design elements)
     background: #030008;
     color: #e9d5ff;
     border: double #2d1b69;
@@ -542,8 +548,12 @@ Markdown {
 /* ---- Markdown (preview pane — slightly wider) ---- */
 Markdown {
     height: 100%;
+<<<<<<< HEAD
     width: 1.4fr;
 >>>>>>> fe080f5 (Add a visually striking home screen with ASCII art and grouped buttons)
+=======
+    width: 1fr;
+>>>>>>> 0f844ab (Improve the network page with a new layout and design elements)
     background: #030008;
     color: #d8b4fe;
     border: solid #2d1b69;

@@ -12,10 +12,14 @@ from textual.widgets import (
     Static,
 )
 <<<<<<< HEAD
+<<<<<<< HEAD
 from textual.containers import Horizontal, Vertical, VerticalScroll
 =======
 from textual.containers import Horizontal, VerticalScroll
 >>>>>>> fe080f5 (Add a visually striking home screen with ASCII art and grouped buttons)
+=======
+from textual.containers import Horizontal, Vertical, VerticalScroll
+>>>>>>> 0f844ab (Improve the network page with a new layout and design elements)
 import socket
 import file_manager
 import network
@@ -24,10 +28,14 @@ import re
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 ASCII_ART = """
 =======
 ASCII_ART = """\
 >>>>>>> fe080f5 (Add a visually striking home screen with ASCII art and grouped buttons)
+=======
+ASCII_ART = """
+>>>>>>> 0f844ab (Improve the network page with a new layout and design elements)
  ██╗    ██╗ ██████╗ ██████╗ ██████╗ ██╗     ███████╗███████╗███████╗
  ██║    ██║██╔═══██╗██╔══██╗██╔══██╗██║     ██╔════╝██╔════╝██╔════╝
  ██║ █╗ ██║██║   ██║██████╔╝██║  ██║██║     █████╗  ███████╗███████╗
@@ -118,6 +126,12 @@ NETWORK_BANNER = """\
    └──────────┘         WORDLESS  //  NETWORK            └──────────┘"""
 =======
 >>>>>>> fe080f5 (Add a visually striking home screen with ASCII art and grouped buttons)
+
+
+NETWORK_BANNER = """\
+   ┌──────────┐                                          ┌──────────┐
+   │   HOST   │ ════════════════════════════════════════ │   JOIN   │
+   └──────────┘         WORDLESS  //  NETWORK            └──────────┘"""
 
 
 class Network(Widget):
