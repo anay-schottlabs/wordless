@@ -69,16 +69,27 @@ Tab.-active:hover {
     background: #4c0a7e;
 }
 
+<<<<<<< HEAD
 /* ---- Buttons (base — filled primary) ---- */
+=======
+/* ---- Buttons  (filled, primary) ---- */
+>>>>>>> 2a0b431 (Apply a retro purple and hacker-themed UI overhaul to the application)
 Button {
     background: #6d28d9;
     color: #f5f3ff;
     border: none;
+<<<<<<< HEAD
     padding: 1 4;
     min-width: 16;
     text-style: bold;
     margin-right: 1;
     height: auto;
+=======
+    padding: 0 2;
+    min-width: 14;
+    text-style: bold;
+    margin-right: 1;
+>>>>>>> 2a0b431 (Apply a retro purple and hacker-themed UI overhaul to the application)
 }
 
 Button:hover {
@@ -92,7 +103,11 @@ Button:focus {
     color: #ffffff;
 }
 
+<<<<<<< HEAD
 /* Cancel — secondary / muted */
+=======
+/* Cancel buttons — secondary / muted */
+>>>>>>> 2a0b431 (Apply a retro purple and hacker-themed UI overhaul to the application)
 #cancel, #network_cancel {
     background: #1a0035;
     color: #8b5cf6;
@@ -108,9 +123,12 @@ Button:focus {
 #network_disconnect {
     background: #44026f;
     color: #fde68a;
+<<<<<<< HEAD
     margin: 1 3;
     height: 5;
     padding: 1 4;
+=======
+>>>>>>> 2a0b431 (Apply a retro purple and hacker-themed UI overhaul to the application)
 }
 
 #network_disconnect:hover {
@@ -122,9 +140,12 @@ Button:focus {
 #network_done {
     background: #2d1b69;
     color: #c084fc;
+<<<<<<< HEAD
     margin: 1 3;
     height: 5;
     padding: 1 4;
+=======
+>>>>>>> 2a0b431 (Apply a retro purple and hacker-themed UI overhaul to the application)
 }
 
 #network_done:hover {
@@ -152,6 +173,7 @@ Label {
     padding: 0 1;
 }
 
+<<<<<<< HEAD
 /* =============================================
    HOME SCREEN
    ============================================= */
@@ -366,13 +388,31 @@ Network Markdown {
    TEXT EDITOR
    ============================================= */
 
+=======
+/* ---- Home & Network page containers ---- */
+Home {
+    background: #050010;
+    padding: 2 3;
+}
+
+Network {
+    background: #050010;
+    padding: 2 3;
+}
+
+/* ---- Text Editor (write pane) ---- */
+>>>>>>> 2a0b431 (Apply a retro purple and hacker-themed UI overhaul to the application)
 Editor {
     height: 95%;
 }
 
 TextArea {
     height: 100%;
+<<<<<<< HEAD
     width: 1fr;
+=======
+    width: 1.5fr;
+>>>>>>> 2a0b431 (Apply a retro purple and hacker-themed UI overhaul to the application)
     background: #030008;
     color: #e9d5ff;
     border: double #2d1b69;
@@ -382,15 +422,26 @@ TextArea:focus {
     border: double #7c3aed;
 }
 
+<<<<<<< HEAD
 Markdown {
     height: 100%;
     width: 1.4fr;
+=======
+/* ---- Markdown (preview pane) ---- */
+Markdown {
+    height: 100%;
+    width: 1fr;
+>>>>>>> 2a0b431 (Apply a retro purple and hacker-themed UI overhaul to the application)
     background: #030008;
     color: #d8b4fe;
     border: solid #2d1b69;
     padding: 0 1;
 }
 
+<<<<<<< HEAD
+=======
+/* ---- Markdown headings ---- */
+>>>>>>> 2a0b431 (Apply a retro purple and hacker-themed UI overhaul to the application)
 MarkdownH1 {
     color: #c084fc;
     text-style: bold;
