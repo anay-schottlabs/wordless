@@ -9,8 +9,9 @@ from textual.widgets import (
     Input,
     Label,
     Tab,
+    Static,
 )
-from textual.containers import Horizontal
+from textual.containers import Horizontal, Vertical, VerticalScroll
 import socket
 import file_manager
 import network
@@ -18,30 +19,68 @@ from enum import Enum, auto
 import re
 
 
+ASCII_ART = """
+ ██╗    ██╗ ██████╗ ██████╗ ██████╗ ██╗     ███████╗███████╗███████╗
+ ██║    ██║██╔═══██╗██╔══██╗██╔══██╗██║     ██╔════╝██╔════╝██╔════╝
+ ██║ █╗ ██║██║   ██║██████╔╝██║  ██║██║     █████╗  ███████╗███████╗
+ ██║███╗██║██║   ██║██╔══██╗██║  ██║██║     ██╔══╝  ╚════██║╚════██║
+ ╚███╔███╔╝╚██████╔╝██║  ██║██████╔╝███████╗███████╗███████║███████║
+  ╚══╝╚══╝  ╚═════╝ ╚═╝  ╚═╝╚═════╝ ╚══════╝╚══════╝╚══════╝╚══════╝"""
+
+
 # a class for the home screen
 class Home(Widget):
     def __init__(self):
         super().__init__()
+        self.save_button   = Button("Save",        id="save")
+        self.load_button   = Button("Load",        id="load")
+        self.new_button    = Button("New File",    id="new")
+        self.rename_button = Button("Rename File", id="rename")
+        self.delete_button = Button("Delete File", id="delete")
         self.buttons = [
-            Button("Save", id="save"),
-            Button("Load", id="load"),
-            Button("New File", id="new"),
-            Button("Rename File", id="rename"),
-            Button("Delete File", id="delete"),
+            self.save_button, self.load_button,
+            self.new_button, self.rename_button, self.delete_button,
         ]
         self.event_button_state = EventButtonState.NONE
 
     def hide_all_buttons(self) -> None:
         for button in self.buttons:
             button.display = False
+        self.io_header.display = False
+        self.io_row.display = False
+        self.mgmt_header.display = False
+        self.mgmt_row.display = False
 
     def reset_buttons(self) -> None:
         for button in self.buttons:
             button.display = True
+        self.io_header.display = True
+        self.io_row.display = True
+        self.mgmt_header.display = True
+        self.mgmt_row.display = True
 
     def compose(self) -> ComposeResult:
-        for button in self.buttons:
-            yield button
+        yield Static(ASCII_ART, id="ascii-art")
+        yield Static("// a minimalist text editor //", id="subtitle")
+
+        self.io_header = Static(
+            "─── FILE I/O ───────────────────────────────────────────────────────────",
+            classes="section-label",
+        )
+        yield self.io_header
+        self.io_row = Horizontal(self.save_button, self.load_button, id="io-buttons")
+        yield self.io_row
+
+        self.mgmt_header = Static(
+            "─── FILE MANAGEMENT ────────────────────────────────────────────────────",
+            classes="section-label",
+        )
+        yield self.mgmt_header
+        self.mgmt_row = Horizontal(
+            self.new_button, self.rename_button, self.delete_button,
+            id="mgmt-buttons",
+        )
+        yield self.mgmt_row
 
         self.files_label = Label()
         self.files_label.display = False
@@ -61,7 +100,13 @@ class Home(Widget):
         self.event_button = Button(id="event")
         self.event_button.display = False
 
-        yield Horizontal(self.cancel_button, self.event_button)
+        yield Horizontal(self.cancel_button, self.event_button, id="action-buttons")
+
+
+NETWORK_BANNER = """\
+   ┌──────────┐                                          ┌──────────┐
+   │   HOST   │ ════════════════════════════════════════ │   JOIN   │
+   └──────────┘         WORDLESS  //  NETWORK            └──────────┘"""
 
 
 class Network(Widget):
@@ -70,10 +115,37 @@ class Network(Widget):
         self.event_button_state = NetworkEventButtonState.NONE
 
     def compose(self) -> ComposeResult:
-        self.host_button = Button("Host", id="host")
-        self.join_button = Button("Join", id="join")
+        yield Static(NETWORK_BANNER, id="network-banner")
+        yield Static(
+            "// share files across your local network in real time //",
+            id="network-tagline",
+        )
 
-        yield Horizontal(self.host_button, self.join_button)
+        self.host_button = Button("Host a File", id="host")
+        self.join_button = Button("Join a Session", id="join")
+
+        self.mode_row = Horizontal(
+            Vertical(
+                Static("HOST", classes="mode-label"),
+                Static(
+                    "Share a local file with\nanother machine on your network",
+                    classes="mode-desc",
+                ),
+                self.host_button,
+                id="host-card",
+            ),
+            Vertical(
+                Static("JOIN", classes="mode-label"),
+                Static(
+                    "Connect to a file hosted\nby another machine on your network",
+                    classes="mode-desc",
+                ),
+                self.join_button,
+                id="join-card",
+            ),
+            id="mode-row",
+        )
+        yield self.mode_row
 
         self.conn_input = Input()
         self.conn_input.display = False
@@ -97,7 +169,14 @@ class Network(Widget):
         self.done_button.display = False
         yield self.done_button
 
-        yield Horizontal(self.cancel_button, self.event_button)
+        yield Horizontal(self.cancel_button, self.event_button, id="network-action-buttons")
+
+        self.received_header = Static(
+            "─── RECEIVED CONTENT ───────────────────────────────────────────────────",
+            id="received-header",
+        )
+        self.received_header.display = False
+        yield self.received_header
 
         self.markdown = Markdown()
         self.markdown.display = False
@@ -144,12 +223,10 @@ class Editor(Widget):
 
 # creating the app class
 class Wordless(App):
-    # hides one of the default bindings
-    # hiding it saves screen space
     ENABLE_COMMAND_PALETTE = False
-
-    # path to the CSS file
     CSS_PATH = "styles.tcss"
+    TITLE = "WORDLESS"
+    SUB_TITLE = "// a text editor //"
 
     # creates the layout of the app
     def compose(self) -> ComposeResult:
@@ -237,8 +314,7 @@ class Wordless(App):
         self.home.reset_buttons()
 
     def return_network_page(self) -> None:
-        self.network.host_button.display = True
-        self.network.join_button.display = True
+        self.network.mode_row.display = True
         self.network.conn_input.display = False
         self.network.conn_input.value = ""
         self.network.status_label.display = False
@@ -246,6 +322,7 @@ class Wordless(App):
         self.network.event_button.display = False
         self.network.disconnect_button.display = False
         self.network.done_button.display = False
+        self.network.received_header.display = False
         self.network.markdown.display = False
         self.network.event_button_state = NetworkEventButtonState.NONE
 
@@ -278,6 +355,7 @@ class Wordless(App):
         self.call_from_thread(setattr, self.network.conn_input, "display", False)
         self.call_from_thread(setattr, self.network.cancel_button, "display", False)
         self.call_from_thread(setattr, self.network.event_button, "display", False)
+        self.call_from_thread(setattr, self.network.received_header, "display", True)
         self.call_from_thread(setattr, self.network.markdown, "display", True)
         self.call_from_thread(setattr, self.network.disconnect_button, "display", True)
 
@@ -556,8 +634,7 @@ class Wordless(App):
                 self.return_network_page()
 
             else:
-                self.network.host_button.display = False
-                self.network.join_button.display = False
+                self.network.mode_row.display = False
                 self.network.conn_input.display = True
                 self.network.conn_input.focus()
                 self.network.cancel_button.display = True
