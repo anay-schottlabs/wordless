@@ -1,0 +1,2 @@
+# Third-party imports used by main.py (network.py / file_manager.py are stdlib-only).
+textual
