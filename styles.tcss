@@ -8,6 +8,7 @@
 Screen {
     background: #050010;
     color: #e9d5ff;
+    padding-top: 1;
     scrollbar-background: #0a0018;
     scrollbar-color: #2d1b69;
     scrollbar-color-hover: #6d28d9;
@@ -53,16 +54,14 @@ FooterKey .footer-key--key {
 /* ---- Tab Bar ---- */
 Tabs {
     background: #050010;
-    margin-top: 1;
     border-bottom: solid #2d1b69;
-    height: auto;
 }
 
 Tab {
     background: #050010;
     color: #2d1b69;
     padding: 0 4;
-    text-style: none;
+    height: 3;
 }
 
 Tab:hover {
@@ -79,6 +78,11 @@ Tab.-active {
 Tab.-active:hover {
     background: #1a0035;
     color: #e9d5ff;
+}
+
+Underline > .underline--bar {
+    color: #6d28d9;
+    background: #050010;
 }
 
 /* ---- Buttons (base — filled primary) ---- */
