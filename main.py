@@ -297,7 +297,7 @@ class Wordless(App):
     # creates the layout of the app
     def compose(self) -> ComposeResult:
         # creates a new tab for the home page and network page
-        self.tabs = Tabs(Tab("--HOME--", id="home"), Tab("--NETWORK--", id="network"))
+        self.tabs = Tabs(Tab("HOME", id="home"), Tab("NETWORK", id="network"))
         yield self.tabs
 
         # creates the home screen

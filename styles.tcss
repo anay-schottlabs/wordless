@@ -52,29 +52,33 @@ FooterKey .footer-key--key {
 
 /* ---- Tab Bar ---- */
 Tabs {
-    background: #0a0018;
+    background: #050010;
+    margin-top: 1;
     border-bottom: solid #2d1b69;
+    height: auto;
 }
 
 Tab {
-    background: #0a0018;
-    color: #6d28d9;
-    padding: 0 2;
+    background: #050010;
+    color: #2d1b69;
+    padding: 0 4;
+    text-style: none;
 }
 
 Tab:hover {
-    background: #1a0035;
-    color: #c084fc;
+    background: #0a0018;
+    color: #7c3aed;
 }
 
 Tab.-active {
-    background: #3b0764;
-    color: #e9d5ff;
+    background: #1a0035;
+    color: #c084fc;
     text-style: bold;
 }
 
 Tab.-active:hover {
-    background: #4c0a7e;
+    background: #1a0035;
+    color: #e9d5ff;
 }
 
 /* ---- Buttons (base — filled primary) ---- */
