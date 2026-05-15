@@ -8,6 +8,12 @@
 Screen {
     background: #050010;
     color: #e9d5ff;
+    scrollbar-background: #0a0018;
+    scrollbar-color: #2d1b69;
+    scrollbar-color-hover: #6d28d9;
+    scrollbar-color-active: #7c3aed;
+    scrollbar-corner-color: #0a0018;
+    scrollbar-size-vertical: 1;
 }
 
 /* ---- Header ---- */
@@ -160,7 +166,8 @@ Label {
 
 Home {
     background: #050010;
-    overflow-y: auto;
+    overflow-y: hidden;
+    height: 100%;
 }
 
 #ascii-art {
@@ -238,7 +245,8 @@ Home Input {
 
 Network {
     background: #050010;
-    overflow-y: auto;
+    overflow-y: hidden;
+    height: 100%;
 }
 
 /* Banner diagram */
@@ -445,20 +453,12 @@ WordlessFooter.-selecting #footer-right {
     color: #4c1d95;
 }
 
-/* ---- Scrollbars ---- */
-ScrollBar {
-    background: #0a0018;
-    color: #0a0018;
-}
-
-ScrollBarSlider {
-    background: #2d1b69;
-}
-
-ScrollBarSlider:hover {
-    background: #6d28d9;
-}
-
-ScrollBarCorner {
-    background: #0a0018;
+/* ---- Scrollbars (editor / other scrollable areas) ---- */
+TextArea {
+    scrollbar-background: #030008;
+    scrollbar-color: #2d1b69;
+    scrollbar-color-hover: #6d28d9;
+    scrollbar-color-active: #7c3aed;
+    scrollbar-corner-color: #030008;
+    scrollbar-size-vertical: 1;
 }

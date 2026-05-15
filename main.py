@@ -31,12 +31,10 @@ class WordlessFooter(Horizontal):
         if selected_text:
             sel_words = _word_count(selected_text)
             sel_chars = len(selected_text)
-            left.update(f"◈  {sel_words}w · {sel_chars}c  selected")
-            right.update(f"doc  {total_words}w · {total_chars}c")
+            right.update(f"selecting: {sel_words} words · {sel_chars} characters")
             self.add_class("-selecting")
         else:
-            left.update("")
-            right.update(f"{total_words}w · {total_chars}c")
+            right.update(f"{total_words} words · {total_chars} characters")
             self.remove_class("-selecting")
 
     def clear(self) -> None:
@@ -276,7 +274,7 @@ class Editor(Widget):
 
 # creating the app class
 class Wordless(App):
-    ENABLE_COMMAND_PALETTE = False # this app doesn't use the command palette
+    ENABLE_COMMAND_PALETTE = False  # this app doesn't use the command palette
     CSS_PATH = "styles.tcss"
     TITLE = "WORDLESS"
     SUB_TITLE = "// a text editor //"
@@ -361,12 +359,16 @@ class Wordless(App):
         # if hosting a file, send the updated content to the client
         if self.network.event_button_state == NetworkEventButtonState.CLOSE_HOST:
             network.send_data(self.host_conn, self.files[self.host_file])
-        self.footer_bar.show_editor_stats(self.textarea.text, self.textarea.selected_text)
+        self.footer_bar.show_editor_stats(
+            self.textarea.text, self.textarea.selected_text
+        )
 
     # called whenever the textarea's selection changes
     def on_text_area_selection_changed(self, event: TextArea.SelectionChanged) -> None:
         if hasattr(self, "active_tab") and self.active_tab == ActiveTab.EDITOR:
-            self.footer_bar.show_editor_stats(self.textarea.text, self.textarea.selected_text)
+            self.footer_bar.show_editor_stats(
+                self.textarea.text, self.textarea.selected_text
+            )
 
     # method to reset to the home screen
     # the UI state is changed often
@@ -517,7 +519,7 @@ class Wordless(App):
                     # nothing is wrong, create the file
                     else:
                         self.files[self.home.text_input.value] = ""
-                        file_manager.save_files(self.files) # save the new file
+                        file_manager.save_files(self.files)  # save the new file
                         # add a new tab to the tab bar
                         self.tabs.add_tab(
                             Tab(
@@ -558,7 +560,9 @@ class Wordless(App):
                         self.home.status_label.update("Invalid file name")
                         return
                     self.files[new_name] = self.files.pop(self.rename_from)
-                    file_manager.save_files(self.files) # save the file with the new name
+                    file_manager.save_files(
+                        self.files
+                    )  # save the file with the new name
                     # change the name of the tab
                     self.tabs.remove_tab(self.rename_from.replace(" ", "-"))
                     self.tabs.add_tab(Tab(new_name, id=new_name.replace(" ", "-")))
