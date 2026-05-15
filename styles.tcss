@@ -2,6 +2,8 @@
    WORDLESS  —  RETRO PURPLE / HACKER THEME
    ============================================= */
 
+/* NOTE: Style was created by AI */
+
 /* ---- Root ---- */
 Screen {
     background: #050010;
@@ -384,7 +386,7 @@ TextArea:focus {
 
 Markdown {
     height: 100%;
-    width: 1.4fr;
+    width: 1fr;
     background: #030008;
     color: #d8b4fe;
     border: solid #2d1b69;
@@ -412,6 +414,36 @@ MarkdownFence {
     background: #0d0020;
     color: #d8b4fe;
     border: solid #2d1b69;
+}
+
+/* =============================================
+   CUSTOM FOOTER
+   ============================================= */
+
+WordlessFooter {
+    dock: bottom;
+    height: 1;
+    background: #0d0020;
+    border-top: solid #2d1b69;
+    layout: horizontal;
+    padding: 0 2;
+}
+
+#footer-left {
+    color: #c084fc;
+    text-style: bold;
+    width: auto;
+    padding: 0 2 0 0;
+}
+
+#footer-right {
+    color: #3b0764;
+    text-align: right;
+    width: 1fr;
+}
+
+WordlessFooter.-selecting #footer-right {
+    color: #4c1d95;
 }
 
 /* ---- Scrollbars ---- */

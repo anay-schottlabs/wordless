@@ -1,6 +1,6 @@
 from textual.app import App, ComposeResult, Widget
 from textual.binding import Binding
-from textual import work
+from textual import work  # for async network tasks
 from textual.widgets import (
     TextArea,
     Markdown,
@@ -12,13 +12,46 @@ from textual.widgets import (
     Static,
 )
 from textual.containers import Horizontal, Vertical, VerticalScroll
+
+
+def _word_count(text: str) -> int:
+    return len(text.split()) if text.strip() else 0
+
+
+class WordlessFooter(Widget):
+    def compose(self) -> ComposeResult:
+        yield Static("", id="footer-left")
+        yield Static("", id="footer-right")
+
+    def show_editor_stats(self, full_text: str, selected_text: str) -> None:
+        total_words = _word_count(full_text)
+        total_chars = len(full_text)
+        left = self.query_one("#footer-left", Static)
+        right = self.query_one("#footer-right", Static)
+        if selected_text:
+            sel_words = _word_count(selected_text)
+            sel_chars = len(selected_text)
+            left.update(f"◈  {sel_words}w · {sel_chars}c  selected")
+            right.update(f"doc  {total_words}w · {total_chars}c")
+            self.add_class("-selecting")
+        else:
+            left.update("")
+            right.update(f"{total_words}w · {total_chars}c")
+            self.remove_class("-selecting")
+
+    def clear(self) -> None:
+        self.query_one("#footer-left", Static).update("")
+        self.query_one("#footer-right", Static).update("")
+        self.remove_class("-selecting")
+
+
 import socket
-import file_manager
-import network
 from enum import Enum, auto
 import re
+import file_manager
+import network
 
-
+# large banner for the homepage
 ASCII_ART = """
  ██╗    ██╗ ██████╗ ██████╗ ██████╗ ██╗     ███████╗███████╗███████╗
  ██║    ██║██╔═══██╗██╔══██╗██╔══██╗██║     ██╔════╝██╔════╝██╔════╝
@@ -32,14 +65,17 @@ ASCII_ART = """
 class Home(Widget):
     def __init__(self):
         super().__init__()
-        self.save_button   = Button("Save",        id="save")
-        self.load_button   = Button("Load",        id="load")
-        self.new_button    = Button("New File",    id="new")
+        self.save_button = Button("Save", id="save")
+        self.load_button = Button("Load", id="load")
+        self.new_button = Button("New File", id="new")
         self.rename_button = Button("Rename File", id="rename")
         self.delete_button = Button("Delete File", id="delete")
         self.buttons = [
-            self.save_button, self.load_button,
-            self.new_button, self.rename_button, self.delete_button,
+            self.save_button,
+            self.load_button,
+            self.new_button,
+            self.rename_button,
+            self.delete_button,
         ]
         self.event_button_state = EventButtonState.NONE
 
@@ -77,7 +113,9 @@ class Home(Widget):
         )
         yield self.mgmt_header
         self.mgmt_row = Horizontal(
-            self.new_button, self.rename_button, self.delete_button,
+            self.new_button,
+            self.rename_button,
+            self.delete_button,
             id="mgmt-buttons",
         )
         yield self.mgmt_row
@@ -103,6 +141,7 @@ class Home(Widget):
         yield Horizontal(self.cancel_button, self.event_button, id="action-buttons")
 
 
+# big banner for the network page
 NETWORK_BANNER = """\
    ┌──────────┐                                          ┌──────────┐
    │   HOST   │ ════════════════════════════════════════ │   JOIN   │
@@ -169,7 +208,9 @@ class Network(Widget):
         self.done_button.display = False
         yield self.done_button
 
-        yield Horizontal(self.cancel_button, self.event_button, id="network-action-buttons")
+        yield Horizontal(
+            self.cancel_button, self.event_button, id="network-action-buttons"
+        )
 
         self.received_header = Static(
             "─── RECEIVED CONTENT ───────────────────────────────────────────────────",
@@ -183,6 +224,13 @@ class Network(Widget):
         yield self.markdown
 
 
+# both the network and the home pages have event buttons
+# event buttons are able to change their function based on the state of the app
+# instead of having multiple different buttons, we simply relabel and rerender the event button
+# the enums manage the states of the event buttons so that their different functions can be called
+
+
+# this enum manages the state of the home page's event button
 class EventButtonState(Enum):
     NONE = auto()
     CREATE = auto()
@@ -192,6 +240,7 @@ class EventButtonState(Enum):
     SUCCESS = auto()
 
 
+# this enum manages the state of the network page's event button
 class NetworkEventButtonState(Enum):
     NONE = auto()
     HOST_FILE = auto()
@@ -201,6 +250,10 @@ class NetworkEventButtonState(Enum):
     CONN_CLOSED = auto()
 
 
+# this manages the state of the app's tabs
+# all files are condensed down to the EDITOR state
+# this is because all of them are rendered with the same widgets
+# for each unique file, the contents are simply loaded into the widgets
 class ActiveTab(Enum):
     HOME = auto()
     NETWORK = auto()
@@ -223,14 +276,13 @@ class Editor(Widget):
 
 # creating the app class
 class Wordless(App):
-    ENABLE_COMMAND_PALETTE = False
+    ENABLE_COMMAND_PALETTE = False # this app doesn't use the command palette
     CSS_PATH = "styles.tcss"
     TITLE = "WORDLESS"
     SUB_TITLE = "// a text editor //"
 
     # creates the layout of the app
     def compose(self) -> ComposeResult:
-
         # creates a new tab for the home page and network page
         self.tabs = Tabs(Tab("--HOME--", id="home"), Tab("--NETWORK--", id="network"))
         yield self.tabs
@@ -249,6 +301,10 @@ class Wordless(App):
         self.textarea = self.editor.textarea
         self.markdown = self.editor.markdown
         yield self.editor
+
+        # custom footer — docked at the bottom
+        self.footer_bar = WordlessFooter(id="wordless-footer")
+        yield self.footer_bar
 
     # called when the app is created
     def on_mount(self) -> None:
@@ -269,6 +325,7 @@ class Wordless(App):
             self.home.display = True
             self.network.display = False
             self.editor.display = False
+            self.footer_bar.clear()
         # if the user switched to the network tab
         # display the network screen
         elif event.tab.id == "network":
@@ -276,6 +333,7 @@ class Wordless(App):
             self.network.display = True
             self.home.display = False
             self.editor.display = False
+            self.footer_bar.clear()
         # if the user switched to a file tab
         # load the contents of the file
         # open editor view
@@ -293,6 +351,7 @@ class Wordless(App):
             # sets the default content of the newly opened tab to the saved content
             self.textarea.text = loaded_content
             self.markdown.update(loaded_content)
+            self.footer_bar.show_editor_stats(loaded_content, "")
 
     # called whenever the textarea's value changes
     def on_text_area_changed(self) -> None:
@@ -302,7 +361,16 @@ class Wordless(App):
         # if hosting a file, send the updated content to the client
         if self.network.event_button_state == NetworkEventButtonState.CLOSE_HOST:
             network.send_data(self.host_conn, self.files[self.host_file])
+        self.footer_bar.show_editor_stats(self.textarea.text, self.textarea.selected_text)
 
+    # called whenever the textarea's selection changes
+    def on_text_area_selection_changed(self, event: TextArea.SelectionChanged) -> None:
+        if hasattr(self, "active_tab") and self.active_tab == ActiveTab.EDITOR:
+            self.footer_bar.show_editor_stats(self.textarea.text, self.textarea.selected_text)
+
+    # method to reset to the home screen
+    # the UI state is changed often
+    # this method entirely changes it back to the home screen's state
     def return_home(self) -> None:
         self.home.text_input.display = False
         self.home.text_input.value = ""
@@ -313,6 +381,9 @@ class Wordless(App):
         self.home.event_button_state = EventButtonState.NONE
         self.home.reset_buttons()
 
+    # method to reset to the network page
+    # the UI state is changed often
+    # this method entirely changes it back to the network page's state
     def return_network_page(self) -> None:
         self.network.mode_row.display = True
         self.network.conn_input.display = False
@@ -346,7 +417,9 @@ class Wordless(App):
                     self.network.status_label.update,
                     f"Could not connect to host on {input_host}:{input_port}",
                 )
-                self.call_from_thread(setattr, self.network.status_label, "display", True)
+                self.call_from_thread(
+                    setattr, self.network.status_label, "display", True
+                )
             return
 
         # update UI on successful connection
@@ -374,9 +447,7 @@ class Wordless(App):
         except Exception:
             # any socket error during receive means the host dropped the connection
             if not self._disconnecting:
-                self.call_from_thread(
-                    self._on_conn_closed, "Connection closed by host"
-                )
+                self.call_from_thread(self._on_conn_closed, "Connection closed by host")
         finally:
             if hasattr(self, "client") and self.client:
                 self.client.close()
@@ -446,7 +517,8 @@ class Wordless(App):
                     # nothing is wrong, create the file
                     else:
                         self.files[self.home.text_input.value] = ""
-                        file_manager.save_files(self.files)
+                        file_manager.save_files(self.files) # save the new file
+                        # add a new tab to the tab bar
                         self.tabs.add_tab(
                             Tab(
                                 self.home.text_input.value,
@@ -457,7 +529,9 @@ class Wordless(App):
                 elif state == EventButtonState.SELECT_RENAME:
                     if self.home.text_input.value not in list(self.files.keys()):
                         self.home.status_label.display = True
-                        self.home.status_label.update("File with this name doesn't exist")
+                        self.home.status_label.update(
+                            "File with this name doesn't exist"
+                        )
                         return
                     self.rename_from = self.home.text_input.value
                     self.home.text_input.value = ""
@@ -469,9 +543,13 @@ class Wordless(App):
                     new_name = self.home.text_input.value
                     if new_name in list(self.files.keys()):
                         self.home.status_label.display = True
-                        self.home.status_label.update("File with this name already exists")
+                        self.home.status_label.update(
+                            "File with this name already exists"
+                        )
                         return
                     if (
+                        # use regex to check for invalid characters
+                        # if there are characters that aren't letters or numbers, the file name is invalid
                         re.search(r"[^A-Za-z0-9 ]", new_name)
                         or new_name == "home"
                         or new_name == "network"
@@ -480,7 +558,8 @@ class Wordless(App):
                         self.home.status_label.update("Invalid file name")
                         return
                     self.files[new_name] = self.files.pop(self.rename_from)
-                    file_manager.save_files(self.files)
+                    file_manager.save_files(self.files) # save the file with the new name
+                    # change the name of the tab
                     self.tabs.remove_tab(self.rename_from.replace(" ", "-"))
                     self.tabs.add_tab(Tab(new_name, id=new_name.replace(" ", "-")))
                     success = True
@@ -503,6 +582,8 @@ class Wordless(App):
                 elif state == EventButtonState.SUCCESS:
                     self.return_home()
 
+                # if the operation was successful, change the UI state
+                # once the button is pressed again,
                 if success == True:
                     self.home.text_input.display = False
                     self.home.status_label.display = True
@@ -555,11 +636,14 @@ class Wordless(App):
                 # the content of this text is not validated, that is handled by individual methods
 
                 if state == NetworkEventButtonState.HOST_FILE:
+                    # the user first must choose a file to host
                     if self.network.conn_input.value not in list(self.files.keys()):
                         self.network.status_label.display = True
                         self.network.status_label.update("File doesn't exist")
                         return
+                    # store the file to be hosted in a variable so it can be accessed by other methods
                     self.host_file = self.network.conn_input.value
+                    # change UI state
                     self.network.event_button_state = NetworkEventButtonState.HOST_CONN
                     self.network.conn_input.value = ""
                     self.network.conn_input.placeholder = "Port Number"
