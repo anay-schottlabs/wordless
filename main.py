@@ -1,5 +1,4 @@
 from textual.app import App, ComposeResult, Widget
-from textual.binding import Binding
 from textual import work  # for async network tasks
 from textual.widgets import (
     TextArea,
@@ -11,7 +10,7 @@ from textual.widgets import (
     Tab,
     Static,
 )
-from textual.containers import Horizontal, Vertical, VerticalScroll
+from textual.containers import Horizontal, Vertical
 
 
 def _word_count(text: str) -> int:
@@ -44,12 +43,10 @@ class WordlessFooter(Horizontal):
         if selected_text:
             sel_words = _word_count(selected_text)
             sel_chars = len(selected_text)
-            left.update(f"◈  {sel_words}w · {sel_chars}c  selected")
-            right.update(f"doc  {total_words}w · {total_chars}c")
+            right.update(f"selecting: {sel_words} words · {sel_chars} characters")
             self.add_class("-selecting")
         else:
-            left.update("")
-            right.update(f"{total_words}w · {total_chars}c")
+            right.update(f"{total_words} words · {total_chars} characters")
             self.remove_class("-selecting")
 
     def clear(self) -> None:
@@ -73,7 +70,6 @@ ASCII_ART = """
  ╚███╔███╔╝╚██████╔╝██║  ██║██████╔╝███████╗███████╗███████║███████║
   ╚══╝╚══╝  ╚═════╝ ╚═╝  ╚═╝╚═════╝ ╚══════╝╚══════╝╚══════╝╚══════╝"""
 
-
 # a class for the home screen
 class Home(Widget):
     def __init__(self):
@@ -83,6 +79,8 @@ class Home(Widget):
         self.new_button = Button("New File", id="new")
         self.rename_button = Button("Rename File", id="rename")
         self.delete_button = Button("Delete File", id="delete")
+        # this list of buttons is used to hide and show the buttons on the home screen
+        # this is used to avoid having to write out the buttons individually
         self.buttons = [
             self.save_button,
             self.load_button,
@@ -92,6 +90,8 @@ class Home(Widget):
         ]
         self.event_button_state = EventButtonState.NONE
 
+    # this method is used to hide all of the buttons on the home screen
+    # used to change UI state easily
     def hide_all_buttons(self) -> None:
         for button in self.buttons:
             button.display = False
@@ -100,6 +100,8 @@ class Home(Widget):
         self.mgmt_header.display = False
         self.mgmt_row.display = False
 
+    # this method is used to show all of the buttons on the home screen
+    # used to change UI state easily
     def reset_buttons(self) -> None:
         for button in self.buttons:
             button.display = True
@@ -109,9 +111,12 @@ class Home(Widget):
         self.mgmt_row.display = True
 
     def compose(self) -> ComposeResult:
+        # large ASCII banner at the top of the home page
         yield Static(ASCII_ART, id="ascii-art")
+        # subtitle for the app
         yield Static("// a minimalist text editor //", id="subtitle")
 
+        # --- FILE I/O section (Save/Load controls) ---
         self.io_header = Static(
             "─── FILE I/O ───────────────────────────────────────────────────────────",
             classes="section-label",
@@ -120,6 +125,7 @@ class Home(Widget):
         self.io_row = Horizontal(self.save_button, self.load_button, id="io-buttons")
         yield self.io_row
 
+        # --- FILE MANAGEMENT section (New, Rename, Delete controls) ---
         self.mgmt_header = Static(
             "─── FILE MANAGEMENT ────────────────────────────────────────────────────",
             classes="section-label",
@@ -133,24 +139,29 @@ class Home(Widget):
         )
         yield self.mgmt_row
 
+        # label to show the list of files (initially hidden)
         self.files_label = Label()
         self.files_label.display = False
         yield self.files_label
 
+        # input for entering file names (initially hidden)
         self.text_input = Input()
         self.text_input.display = False
         yield self.text_input
 
+        # label for displaying status/error messages (initially hidden)
         self.status_label = Label()
         self.status_label.display = False
         yield self.status_label
 
+        # buttons for actions (event or cancel), used for file creation/rename/delete
         self.cancel_button = Button("Cancel", id="cancel")
         self.cancel_button.display = False
 
         self.event_button = Button(id="event")
         self.event_button.display = False
 
+        # horizontal layout for action buttons (event/cancel)
         yield Horizontal(self.cancel_button, self.event_button, id="action-buttons")
 
 
@@ -164,18 +175,23 @@ NETWORK_BANNER = """\
 class Network(Widget):
     def __init__(self):
         super().__init__()
+        # tracks what mode the main "event button" is in (host, join, waiting for conn, etc)
         self.event_button_state = NetworkEventButtonState.NONE
 
     def compose(self) -> ComposeResult:
+        # big banner up top for vibes
         yield Static(NETWORK_BANNER, id="network-banner")
+        # little tagline under the banner ("branding" lol)
         yield Static(
             "// share files across your local network in real time //",
             id="network-tagline",
         )
 
+        # Buttons for the main two network actions
         self.host_button = Button("Host a File", id="host")
         self.join_button = Button("Join a Session", id="join")
 
+        # row containing the "host" and "join" flows side-by-side
         self.mode_row = Horizontal(
             Vertical(
                 Static("HOST", classes="mode-label"),
@@ -199,32 +215,39 @@ class Network(Widget):
         )
         yield self.mode_row
 
+        # where user types an address or port when connecting
         self.conn_input = Input()
-        self.conn_input.display = False
+        self.conn_input.display = False  # hidden until needed
         yield self.conn_input
 
+        # shows error/info messages (hidden by default)
         self.status_label = Label()
         self.status_label.display = False
         yield self.status_label
 
+        # sticking these here because horizontal layout magic...
         self.cancel_button = Button("Cancel", id="network_cancel")
         self.cancel_button.display = False
 
         self.event_button = Button(id="network_event")
         self.event_button.display = False
 
+        # to disconnect from a session (hidden til active session)
         self.disconnect_button = Button("Disconnect", id="network_disconnect")
         self.disconnect_button.display = False
         yield self.disconnect_button
 
+        # "done" after leave/quit (shows up only at the end)
         self.done_button = Button("Done", id="network_done")
         self.done_button.display = False
         yield self.done_button
 
+        # action buttons for cancel/confirm, always grouped together
         yield Horizontal(
             self.cancel_button, self.event_button, id="network-action-buttons"
         )
 
+        # shows up if you're receiving stuff from a host
         self.received_header = Static(
             "─── RECEIVED CONTENT ───────────────────────────────────────────────────",
             id="received-header",
@@ -232,6 +255,7 @@ class Network(Widget):
         self.received_header.display = False
         yield self.received_header
 
+        # markdown widget for displaying received file content
         self.markdown = Markdown()
         self.markdown.display = False
         yield self.markdown
@@ -397,6 +421,7 @@ class Wordless(App):
         self.home.cancel_button.display = False
         self.home.event_button_state = EventButtonState.NONE
         self.home.reset_buttons()
+   
 
     # method to reset to the network page
     # the UI state is changed often
@@ -423,14 +448,33 @@ class Wordless(App):
         self.network.done_button.display = True
         self.footer_bar.set_share_status(False)
 
+    # ==============================================================================
+    # _connect_client: Establishes a network client, manages the connection phase, 
+    # and handles data reception for peer-to-peer file sharing.
+    #
+    # This function transparently handles the entire lifecycle of joining a host:
+    # 1. Attempting connection (network.Client) and resiliently catching errors.
+    # 2. Deep integration with UI state, using thread-safe updates via call_from_thread.
+    # 3. Monitoring live data from the host; updates UI in real-time or handles clean disconnect.
+    #
+    # The AI assisted in designing robust error handling and thread-to-UI communication,
+    # favoring user-experience in asynchronous distributed environments.
+    # ==============================================================================
+
     @work(thread=True)
     def _connect_client(self, input_host: str, input_port: int) -> None:
-        # --- connection phase ---
+        # Reset disconnect flag each time a new connection is initiated (ensures idempotency)
         self._disconnecting = False
         try:
+            # --- Step 1: Connection Attempt ---
+            # Intelligently encapsulate network connection inside a try-block.
+            # network.Client encapsulates the socket connection logic.
             self.client = network.Client(input_host, input_port)
+            # The .run() method might perform additional handshakes or socket setup.
             self.client_conn = self.client.run()
         except Exception:
+            # If connection fails and it wasn't due to a deliberate disconnect,
+            # invoke UI update to inform the user. The call_from_thread ensures thread-safety.
             if not self._disconnecting:
                 self.call_from_thread(
                     self.network.status_label.update,
@@ -441,7 +485,10 @@ class Wordless(App):
                 )
             return
 
-        # update UI on successful connection
+        # --- Step 2: UI State Update (Success Path) ---
+        # Multiple components are updated to reflect the "connected" state.
+        # All UI mutations routed via call_from_thread to avoid race conditions
+        # (AI note: this is crucial in event-driven, multithreaded UIs)
         self.call_from_thread(self.network.status_label.update, "Connected to host")
         self.call_from_thread(setattr, self.network.status_label, "display", True)
         self.call_from_thread(setattr, self.network.conn_input, "display", False)
@@ -451,23 +498,30 @@ class Wordless(App):
         self.call_from_thread(setattr, self.network.markdown, "display", True)
         self.call_from_thread(setattr, self.network.disconnect_button, "display", True)
 
-        # --- receive phase ---
+        # --- Step 3: Data Reception Loop ---
         try:
             while True:
+                # Fetch data live from network peer.
+                # By design, network.get_data is assumed blocking until a new update arrives.
                 self.data = network.get_data(self.client_conn)
+                # Defensive analysis: the protocol treats an empty string as termination,
+                # signaling the remote host has closed the connection.
                 if self.data == "":
-                    # empty recv means the host closed the connection
+                    # If not a user-triggered disconnect, close cleanly and alert the user.
                     if not self._disconnecting:
                         self.call_from_thread(
                             self._on_conn_closed, "Connection closed by host"
                         )
                     break
+                # Update the main Markdown widget with new data, live-editing the session file.
                 self.call_from_thread(self.network.markdown.update, self.data)
         except Exception:
-            # any socket error during receive means the host dropped the connection
+            # Any Exception in this critical loop is evidence of connection loss or protocol error.
+            # Surface this promptly with a UI update, unless already handling a disconnect flow.
             if not self._disconnecting:
                 self.call_from_thread(self._on_conn_closed, "Connection closed by host")
         finally:
+            # Always clean up socket resources. Defensive: ensures no resource leak
             if hasattr(self, "client") and self.client:
                 self.client.close()
 
@@ -739,21 +793,29 @@ class Wordless(App):
             elif event.button.id == "network_cancel":
                 self.return_network_page()
 
+            # handle the host/join button logic for the network tab
             else:
+                # hide mode row and show the connection input field
                 self.network.mode_row.display = False
                 self.network.conn_input.display = True
                 self.network.conn_input.focus()
                 self.network.cancel_button.display = True
                 self.network.event_button.display = True
+                # if user clicked 'host', set up for hosting a file
                 if event.button.id == "host":
                     self.network.conn_input.placeholder = "Name of file to host"
                     self.network.event_button.label = "Choose File"
                     self.network.event_button_state = NetworkEventButtonState.HOST_FILE
+                # if user clicked 'join', set up for joining a session
                 elif event.button.id == "join":
                     self.network.conn_input.placeholder = "IP Address : Port Number"
                     self.network.event_button.label = "Join"
                     self.network.event_button_state = NetworkEventButtonState.JOIN
+       
 
+        # removes focus from any currently focused widget
+        # this prevents unwanted keyboard input in ui elements
+        # helps reset ui state after certain actions are taken
         self.set_focus(None)
 
 
