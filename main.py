@@ -297,6 +297,13 @@ class ActiveTab(Enum):
     EDITOR = auto()
 
 
+# this enum manages the editor preview layout toolbar
+class EditorLayoutState(Enum):
+    SPLIT = auto()
+    EDITOR = auto()
+    PREVIEW = auto()
+
+
 # a class for the text editor
 class Editor(Widget):
     def __init__(self):
@@ -305,10 +312,50 @@ class Editor(Widget):
         self.textarea = TextArea()
         # the markdown is where the result is displayed with formatting
         self.markdown = Markdown()
+        self.layout_split_btn = Button("Split", id="layout-split", classes="layout-btn")
+        self.layout_editor_btn = Button(
+            "Editor", id="layout-editor", classes="layout-btn"
+        )
+        self.layout_preview_btn = Button(
+            "Preview", id="layout-preview", classes="layout-btn"
+        )
+        self.layout_state = EditorLayoutState.SPLIT
 
     def compose(self) -> ComposeResult:
-        # place both elements side by side
-        yield Horizontal(self.textarea, self.markdown)
+        yield Vertical(
+            Horizontal(
+                Static("─── VIEW ───", classes="toolbar-label"),
+                self.layout_split_btn,
+                self.layout_editor_btn,
+                self.layout_preview_btn,
+                id="editor-toolbar",
+            ),
+            Horizontal(self.textarea, self.markdown, id="editor-panes"),
+        )
+
+    def on_mount(self) -> None:
+        self.apply_layout()
+
+    def apply_layout(self) -> None:
+        """Show or hide panes and highlight the active layout button."""
+        self.layout_split_btn.remove_class("-active")
+        self.layout_editor_btn.remove_class("-active")
+        self.layout_preview_btn.remove_class("-active")
+
+        if self.layout_state == EditorLayoutState.SPLIT:
+            self.textarea.display = True
+            self.markdown.display = True
+            self.layout_split_btn.add_class("-active")
+            self.textarea.focus()
+        elif self.layout_state == EditorLayoutState.EDITOR:
+            self.textarea.display = True
+            self.markdown.display = False
+            self.layout_editor_btn.add_class("-active")
+            self.textarea.focus()
+        elif self.layout_state == EditorLayoutState.PREVIEW:
+            self.textarea.display = False
+            self.markdown.display = True
+            self.layout_preview_btn.add_class("-active")
 
 
 # creating the app class
@@ -811,7 +858,21 @@ class Wordless(App):
                     self.network.conn_input.placeholder = "IP Address : Port Number"
                     self.network.event_button.label = "Join"
                     self.network.event_button_state = NetworkEventButtonState.JOIN
-       
+
+        # button functions for file editor layout toolbar
+        elif self.active_tab == ActiveTab.EDITOR:
+            if event.button.id == "layout-split":
+                self.editor.layout_state = EditorLayoutState.SPLIT
+                self.editor.apply_layout()
+                return
+            elif event.button.id == "layout-editor":
+                self.editor.layout_state = EditorLayoutState.EDITOR
+                self.editor.apply_layout()
+                return
+            elif event.button.id == "layout-preview":
+                self.editor.layout_state = EditorLayoutState.PREVIEW
+                self.editor.apply_layout()
+                return
 
         # removes focus from any currently focused widget
         # this prevents unwanted keyboard input in ui elements
