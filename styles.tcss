@@ -422,10 +422,9 @@ MarkdownFence {
 
 WordlessFooter {
     dock: bottom;
-    height: 1;
+    height: 2;
     background: #0d0020;
     border-top: solid #2d1b69;
-    layout: horizontal;
     padding: 0 2;
 }
 
@@ -449,13 +448,17 @@ WordlessFooter.-selecting #footer-right {
 /* ---- Scrollbars ---- */
 ScrollBar {
     background: #0a0018;
-    color: #2d1b69;
+    color: #0a0018;
 }
 
 ScrollBarSlider {
-    background: #3b0764;
+    background: #2d1b69;
 }
 
 ScrollBarSlider:hover {
     background: #6d28d9;
+}
+
+ScrollBarCorner {
+    background: #0a0018;
 }

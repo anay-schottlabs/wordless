@@ -18,7 +18,7 @@ def _word_count(text: str) -> int:
     return len(text.split()) if text.strip() else 0
 
 
-class WordlessFooter(Widget):
+class WordlessFooter(Horizontal):
     def compose(self) -> ComposeResult:
         yield Static("", id="footer-left")
         yield Static("", id="footer-right")
