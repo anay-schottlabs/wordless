@@ -20,21 +20,36 @@ def _word_count(text: str) -> int:
 
 class WordlessFooter(Horizontal):
     def compose(self) -> ComposeResult:
+        yield Static("", id="footer-share")
         yield Static("", id="footer-left")
         yield Static("", id="footer-right")
+
+    def on_mount(self) -> None:
+        self.set_share_status(False)
+
+    def set_share_status(self, is_sharing: bool, filename: str = "") -> None:
+        share = self.query_one("#footer-share", Static)
+        if is_sharing:
+            share.update(f"⬤  sharing: {filename}")
+            self.add_class("-sharing")
+        else:
+            share.update("◌  not sharing")
+            self.remove_class("-sharing")
 
     def show_editor_stats(self, full_text: str, selected_text: str) -> None:
         total_words = _word_count(full_text)
         total_chars = len(full_text)
-        left = self.query_one("#footer-left", Static)
         right = self.query_one("#footer-right", Static)
+        left = self.query_one("#footer-left", Static)
         if selected_text:
             sel_words = _word_count(selected_text)
             sel_chars = len(selected_text)
-            right.update(f"selecting: {sel_words} words · {sel_chars} characters")
+            left.update(f"◈  {sel_words}w · {sel_chars}c  selected")
+            right.update(f"doc  {total_words}w · {total_chars}c")
             self.add_class("-selecting")
         else:
-            right.update(f"{total_words} words · {total_chars} characters")
+            left.update("")
+            right.update(f"{total_words}w · {total_chars}c")
             self.remove_class("-selecting")
 
     def clear(self) -> None:
@@ -398,6 +413,7 @@ class Wordless(App):
         self.network.received_header.display = False
         self.network.markdown.display = False
         self.network.event_button_state = NetworkEventButtonState.NONE
+        self.footer_bar.set_share_status(False)
 
     def _on_conn_closed(self, message: str) -> None:
         self.network.status_label.update(message)
@@ -405,6 +421,7 @@ class Wordless(App):
         self.network.event_button.display = False
         self.network.disconnect_button.display = False
         self.network.done_button.display = True
+        self.footer_bar.set_share_status(False)
 
     @work(thread=True)
     def _connect_client(self, input_host: str, input_port: int) -> None:
@@ -675,6 +692,7 @@ class Wordless(App):
                         self.network.event_button.label = "Close Connection"
                         # send data
                         network.send_data(self.host_conn, self.files[self.host_file])
+                        self.footer_bar.set_share_status(True, self.host_file)
                         # monitor connection for client disconnect
                         self._monitor_host_conn()
                     except ValueError:

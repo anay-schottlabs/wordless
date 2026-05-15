@@ -436,11 +436,22 @@ WordlessFooter {
     padding: 0 2;
 }
 
+#footer-share {
+    color: #2d1b69;
+    width: auto;
+    padding: 0 3 0 0;
+}
+
+WordlessFooter.-sharing #footer-share {
+    color: #ffffff;
+    text-style: bold;
+}
+
 #footer-left {
     color: #c084fc;
     text-style: bold;
     width: auto;
-    padding: 0 2 0 0;
+    padding: 0 3 0 0;
 }
 
 #footer-right {
